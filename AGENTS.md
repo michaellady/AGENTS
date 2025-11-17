@@ -411,3 +411,88 @@ if [[ "$BRANCH" != "main" && "$BRANCH" != "master" ]]; then
   git push -u origin "$BRANCH"
 fi
 ```
+
+---
+
+## Landing the Plane
+
+**When the user says "let's land the plane"**, follow this clean session-ending protocol:
+
+1. **File beads issues for any remaining work** that needs follow-up
+2. **Ensure all quality gates pass** (only if code changes were made) - run tests, linters, builds (file P0 issues if broken)
+3. **Update beads issues** - close finished work, update status
+4. **Sync the issue tracker carefully** - Work methodically to ensure both local and remote issues merge safely. This may require pulling, handling conflicts (sometimes accepting remote changes and re-importing), syncing the database, and verifying consistency. Be creative and patient - the goal is clean reconciliation where no issues are lost.
+5. **Clean up git state** - Clear old stashes and prune dead remote branches:
+   ```bash
+   git stash clear                    # Remove old stashes
+   git remote prune origin            # Clean up deleted remote branches
+   ```
+6. **Verify clean state** - Ensure all changes are committed and pushed, no untracked files remain
+7. **Choose a follow-up issue for next session**
+   - Provide a prompt for the user to give to you in the next session
+   - Format: "Continue work on ISSUE-ID: [issue title]. [Brief context about what's been done and what's next]"
+
+### Example "Land the Plane" Session
+
+```bash
+# 1. File remaining work
+bd create "Add integration tests for sync" -t task -p 2
+
+# 2. Run quality gates (only if code changes were made)
+npm test                # or: go test, pytest, etc.
+npm run lint            # or: golangci-lint run, etc.
+
+# 3. Close finished issues
+bd close AGENTS-42 --reason "Completed feature and tests passing"
+
+# 4. Sync carefully - example workflow (adapt as needed):
+git pull --rebase
+# If conflicts in .beads/issues.jsonl, resolve thoughtfully:
+#   - git checkout --theirs .beads/issues.jsonl (accept remote)
+#   - bd import -i .beads/issues.jsonl (re-import)
+#   - Or manual merge, then import
+bd sync  # Export/import/verify
+git push
+# Repeat pull/push if needed until clean
+
+# 5. Clean up git state
+git stash clear
+git remote prune origin
+
+# 6. Verify clean state
+git status
+
+# 7. Choose next work
+bd ready
+bd show AGENTS-44
+```
+
+### Session Handoff Deliverables
+
+**Then provide the user with:**
+
+- Summary of what was completed this session
+- What issues were filed for follow-up
+- Status of quality gates (all passing / issues filed)
+- Recommended prompt for next session
+
+**Example handoff message:**
+
+```
+✅ Session Complete
+
+Completed this session:
+- AGENTS-42: Implemented user authentication with JWT
+- AGENTS-43: Added unit tests for auth middleware
+
+Follow-up issues filed:
+- AGENTS-45: Add integration tests for auth flow (P2)
+- AGENTS-46: Add password reset functionality (P3)
+
+Quality gates: ✅ All tests passing, no lint errors
+
+Recommended prompt for next session:
+"Continue work on AGENTS-45: Add integration tests for auth flow.
+The auth middleware is complete and unit tested. Next step is to
+add integration tests covering the full login/logout flow."
+```
