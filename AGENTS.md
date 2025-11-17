@@ -17,6 +17,23 @@ This document contains the rules and guidelines for Claude agents.
 
 **CRITICAL: Beads is your documentation system. Do NOT create separate markdown files for notes, architecture, or intermediate documentation.**
 
+### Database Initialization
+
+**Before using beads commands, check if a beads database exists in the repository. If not, initialize one.**
+
+**Check for database:**
+```bash
+# Look for .beads directory or beads.db file
+ls -la .beads 2>/dev/null || ls -la beads.db 2>/dev/null
+```
+
+**Initialize if missing:**
+```bash
+bd init
+```
+
+**IMPORTANT:** Always run `bd init` when starting work in a new repository that doesn't have beads initialized. This creates the necessary database and configuration files.
+
 ### Basic Commands
 
 **Create an issue:**
