@@ -34,6 +34,33 @@ bd init
 
 **IMPORTANT:** Always run `bd init` when starting work in a new repository that doesn't have beads initialized. This creates the necessary database and configuration files.
 
+### Verify Correct Database Location
+
+**After initialization or when starting work, verify you're using the LOCAL repository database, not a global one.**
+
+**Check current database location:**
+```bash
+# View beads stats to see which database is active
+bd stats
+
+# Check if local .beads directory exists
+ls -la .beads 2>/dev/null && echo "✓ Using local database" || echo "⚠ No local database found"
+```
+
+**Verify database activity:**
+```bash
+# List recent issues - they should use the repository's prefix
+bd list | head -5
+
+# Check .beads directory was modified recently
+ls -lth .beads/ | head -3
+```
+
+**Common issue - Using global database:**
+If you're using a global beads database (e.g., from `/Users/username/dev/beads/`), issues will have a different prefix and won't be repository-specific.
+
+**Solution:** Run `bd init` in the repository root to create a local database, then verify with `bd stats` and check for `.beads/` directory.
+
 ### Basic Commands
 
 **Create an issue:**
