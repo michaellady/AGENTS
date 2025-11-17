@@ -17,6 +17,50 @@ This document contains the rules and guidelines for Claude agents.
 
 **CRITICAL: Beads is your documentation system. Do NOT create separate markdown files for notes, architecture, or intermediate documentation.**
 
+### Database Initialization
+
+**Before using beads commands, check if a beads database exists in the repository. If not, initialize one.**
+
+**Check for database:**
+```bash
+# Look for .beads directory or beads.db file
+ls -la .beads 2>/dev/null || ls -la beads.db 2>/dev/null
+```
+
+**Initialize if missing:**
+```bash
+bd init
+```
+
+**IMPORTANT:** Always run `bd init` when starting work in a new repository that doesn't have beads initialized. This creates the necessary database and configuration files.
+
+### Verify Correct Database Location
+
+**After initialization or when starting work, verify you're using the LOCAL repository database, not a global one.**
+
+**Check current database location:**
+```bash
+# View beads stats to see which database is active
+bd stats
+
+# Check if local .beads directory exists
+ls -la .beads 2>/dev/null && echo "✓ Using local database" || echo "⚠ No local database found"
+```
+
+**Verify database activity:**
+```bash
+# List recent issues - they should use the repository's prefix
+bd list | head -5
+
+# Check .beads directory was modified recently
+ls -lth .beads/ | head -3
+```
+
+**Common issue - Using global database:**
+If you're using a global beads database (e.g., from `/Users/username/dev/beads/`), issues will have a different prefix and won't be repository-specific.
+
+**Solution:** Run `bd init` in the repository root to create a local database, then verify with `bd stats` and check for `.beads/` directory.
+
 ### Basic Commands
 
 **Create an issue:**
