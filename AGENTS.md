@@ -2,6 +2,15 @@
 
 This document contains the rules and guidelines for Claude agents.
 
+## BEFORE ANYTHING ELSE
+
+**When starting work in a new repository, run:**
+```bash
+bd onboard
+```
+
+Follow the instructions provided. If the repository already has a `.beads/` directory and this document includes bd workflow information, onboarding is complete and you can skip this step.
+
 ## Rule 1: Permission Configuration
 
 **All Bash commands are allowed. `rm` commands require user approval.**
@@ -11,102 +20,100 @@ This document contains the rules and guidelines for Claude agents.
 
 ---
 
-## Rule 2: Task Tracking & Documentation in Beads
+## Rule 2: Issue Tracking with bd (beads)
 
-**ALL work tracking, documentation, architecture notes, and intermediate findings MUST be tracked in beads issue tracker.**
+**IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
 
-**CRITICAL: Beads is your documentation system. Do NOT create separate markdown files for notes, architecture, or intermediate documentation.**
+### Why bd?
+
+- Dependency-aware: Track blockers and relationships between issues
+- Git-friendly: Auto-syncs to JSONL for version control
+- Agent-optimized: JSON output, ready work detection, discovered-from links
+- Prevents duplicate tracking systems and confusion
+- **Your documentation system**: Use beads for architecture decisions, design notes, and intermediate findings
 
 ### Database Initialization
 
-**Before using beads commands, check if a beads database exists in the repository. If not, initialize one.**
-
-**Check for database:**
-```bash
-# Look for .beads directory or beads.db file
-ls -la .beads 2>/dev/null || ls -la beads.db 2>/dev/null
-```
-
-**Initialize if missing:**
+**If `.beads/` directory doesn't exist, initialize:**
 ```bash
 bd init
 ```
 
-**IMPORTANT:** Always run `bd init` when starting work in a new repository that doesn't have beads initialized. This creates the necessary database and configuration files.
-
-### Verify Correct Database Location
-
-**After initialization or when starting work, verify you're using the LOCAL repository database, not a global one.**
-
-**Check current database location:**
+**Verify you're using the LOCAL repository database:**
 ```bash
-# View beads stats to see which database is active
-bd stats
-
 # Check if local .beads directory exists
 ls -la .beads 2>/dev/null && echo "✓ Using local database" || echo "⚠ No local database found"
+
+# Verify issues use the repository's prefix
+bd list --no-db | head -3
 ```
 
-**Verify database activity:**
-```bash
-# List recent issues - they should use the repository's prefix
-bd list | head -5
+**Common issue:** Using a global beads database instead of repository-specific one. Solution: Run `bd init` in the repository root.
 
-# Check .beads directory was modified recently
-ls -lth .beads/ | head -3
+### Quick Reference
+
+**Check for ready work:**
+```bash
+bd ready --no-db                                    # Show unblocked issues
+bd ready --json --no-db                            # JSON output for programmatic use
 ```
 
-**Common issue - Using global database:**
-If you're using a global beads database (e.g., from `/Users/username/dev/beads/`), issues will have a different prefix and won't be repository-specific.
-
-**Solution:** Run `bd init` in the repository root to create a local database, then verify with `bd stats` and check for `.beads/` directory.
-
-### Basic Commands
-
-**Create an issue:**
+**Create issues:**
 ```bash
-bd create "Task Title" [type] [priority] -d "Description"
+bd create "Issue title" -t bug|feature|task|epic|chore -p 0-4 -d "Description" --no-db
+bd create "Found bug" -p 1 --deps discovered-from:PARENT-ID --no-db    # Link discovered work
 ```
 
-**Types:** `bug`, `feature`, `task`, `epic`, `chore`
-**Priority:** `0-4` or `P0-P4` (0=critical, 4=backlog, default=2)
+**Issue Types:** `bug`, `feature`, `task`, `epic`, `chore`
+**Priorities:** `0` (critical) → `4` (backlog), default: `2`
 
-**Update status:**
+**Update and claim:**
 ```bash
-bd update [issue-id] -s [status]
+bd update ISSUE-ID --status in_progress --no-db    # Claim work
+bd update ISSUE-ID --priority 1 --no-db            # Change priority
+bd update ISSUE-ID --notes "Additional details" --no-db
 ```
 
 **Statuses:** `open`, `in_progress`, `blocked`, `closed`
 
-**Close an issue:**
+**Complete work:**
 ```bash
-bd close [issue-id] -r "Reason for closing"
-```
-
-**Add notes:**
-```bash
-bd update [issue-id] --notes "Additional details"
+bd close ISSUE-ID --reason "Completed" --no-db
 ```
 
 **View issues:**
 ```bash
-bd list                    # List all issues
-bd list -s open            # Filter by status
-bd show [issue-id]         # Show details
-bd ready                   # Show ready work (no blockers)
+bd list --no-db                  # All issues
+bd list -s open --no-db          # Filter by status
+bd show ISSUE-ID --no-db         # Show details
 ```
+
+**Note:** Use `--no-db` flag for JSONL-based operation (recommended for reliability) or `--json` flag when you need JSON output for programmatic parsing.
+
+### Workflow for AI Agents
+
+1. **Check ready work**: `bd ready --no-db` shows unblocked issues
+2. **Claim your task**: `bd update ISSUE-ID --status in_progress --no-db`
+3. **Work on it**: Implement, test, document
+4. **Discover new work?** Create linked issue:
+   - `bd create "Found bug" -p 1 --deps discovered-from:PARENT-ID --no-db`
+5. **Complete**: `bd close ISSUE-ID --reason "Done" --no-db`
+6. **Commit together**: Always commit `.beads/issues.jsonl` with code changes to keep issue state in sync
 
 ### Workflow Example
 ```bash
+# Check what's ready to work on
+bd ready --no-db
+
 # Create and start work
-bd create "Implement user auth" feature 1 -d "Add JWT-based auth system"
-bd update site-abc -s in_progress
+bd create "Implement user auth" -t feature -p 1 -d "Add JWT-based auth system" --no-db
+bd update AGENTS-42 --status in_progress --no-db
 
 # Add notes as you work
-bd update site-abc --notes "Implemented login endpoint, testing logout"
+bd update AGENTS-42 --notes "Implemented login endpoint, testing logout" --no-db
 
 # Close when complete
-bd close site-abc -r "JWT auth with login/logout endpoints working"
+bd close AGENTS-42 --reason "JWT auth with login/logout endpoints working" --no-db
 ```
 
 ### What to Track in Beads
@@ -122,16 +129,39 @@ Document EVERYTHING in beads using issue descriptions and notes:
 - Meeting notes and discussion points
 - Any information you would normally put in a markdown file
 
-### What NOT to Create
-**NEVER create these types of files:**
-- `NOTES.md`, `TODO.md`, `ARCHITECTURE.md`
-- `IMPLEMENTATION.md`, `DESIGN.md`, `DECISIONS.md`
-- `PROGRESS.md`, `WORK.md`, `PLAN.md`
-- Any other intermediate documentation markdown files
+### Managing AI-Generated Planning Documents
 
-**Instead:** Use `bd update [issue-id] --notes "Your documentation here"`
+AI assistants often create planning and design documents during development. **Use a dedicated directory for these ephemeral files:**
+
+**Recommended approach:**
+- Create a `history/` directory in the project root
+- Store ALL AI-generated planning/design docs in `history/`
+- Keep the repository root clean and focused on permanent project files
+- Only access `history/` when explicitly asked to review past planning
+
+**Files to store in history/:**
+- `PLAN.md`, `IMPLEMENTATION.md`, `ARCHITECTURE.md`
+- `DESIGN.md`, `CODEBASE_SUMMARY.md`, `INTEGRATION_PLAN.md`
+- `TESTING_GUIDE.md`, `TECHNICAL_DESIGN.md`, and similar files
+
+**For work tracking and intermediate documentation:** Use `bd update ISSUE-ID --notes "Your documentation here" --no-db`
+
+**Benefits:**
+- ✅ Clean repository root
+- ✅ Clear separation between ephemeral and permanent documentation
+- ✅ Preserves planning history for archaeological research
+- ✅ Reduces noise when browsing the project
+
+### Auto-Sync with Git
+
+bd automatically syncs with git:
+- Exports to `.beads/issues.jsonl` after changes (5s debounce)
+- Imports from JSONL when newer (e.g., after `git pull`)
+- No manual export/import needed!
+- **Always commit `.beads/issues.jsonl` together with code changes** to keep issue state in sync
 
 ### Planning Strategy
+
 When planning work with beads (especially for epics and features):
 
 **Focus on the critical path to a Minimum Viable Testable (MVT) project:**
@@ -143,17 +173,17 @@ When planning work with beads (especially for epics and features):
 **Example Planning Approach:**
 ```bash
 # Create epic for overall feature
-bd create "User Authentication System" epic 1 -d "MVT: Basic login/logout with session management"
+bd create "User Authentication System" -t epic -p 1 -d "MVT: Basic login/logout with session management" --no-db
 
 # Create critical path tasks
-bd create "Database schema for users table" task 1 -d "Required for MVT"
-bd create "Login endpoint with session creation" task 1 -d "Core MVT functionality"
-bd create "Logout endpoint" task 1 -d "Core MVT functionality"
-bd create "Basic auth middleware" task 1 -d "Required to test protected routes"
+bd create "Database schema for users table" -t task -p 1 -d "Required for MVT" --no-db
+bd create "Login endpoint with session creation" -t task -p 1 -d "Core MVT functionality" --no-db
+bd create "Logout endpoint" -t task -p 1 -d "Core MVT functionality" --no-db
+bd create "Basic auth middleware" -t task -p 1 -d "Required to test protected routes" --no-db
 
 # Defer non-critical items
-bd create "Password reset flow" feature 2 -d "Post-MVT enhancement"
-bd create "OAuth integration" feature 3 -d "Post-MVT enhancement"
+bd create "Password reset flow" -t feature -p 2 -d "Post-MVT enhancement" --no-db
+bd create "OAuth integration" -t feature -p 3 -d "Post-MVT enhancement" --no-db
 ```
 
 **Key principle:** Get to a testable state as quickly as possible, then iterate.
@@ -168,7 +198,7 @@ bd create "OAuth integration" feature 3 -d "Post-MVT enhancement"
 **Recommended workflow:**
 ```bash
 # 1. Create the task
-bd create "Add user login endpoint" task 1 -d "POST /login with email/password"
+bd create "Add user login endpoint" -t task -p 1 -d "POST /login with email/password" --no-db
 
 # 2. Write the test first (it will fail)
 # Create test file with expected behavior
@@ -188,6 +218,20 @@ git add . && git commit -m "Add user login endpoint with tests"
 - Confidence when refactoring
 - Prevents breaking existing functionality
 - Faster iteration cycles
+
+### Important Rules
+
+- ✅ Use bd for ALL task tracking
+- ✅ Always use `--no-db` flag for JSONL-based operation (recommended)
+- ✅ Use `--json` flag for programmatic parsing when needed
+- ✅ Link discovered work with `--deps discovered-from:PARENT-ID`
+- ✅ Check `bd ready --no-db` before asking "what should I work on?"
+- ✅ Store AI planning docs in `history/` directory
+- ✅ Commit `.beads/issues.jsonl` together with code changes
+- ❌ Do NOT create markdown TODO lists
+- ❌ Do NOT use external issue trackers
+- ❌ Do NOT duplicate tracking systems
+- ❌ Do NOT clutter repo root with planning documents
 
 ---
 
