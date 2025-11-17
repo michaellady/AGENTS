@@ -154,6 +154,44 @@ AI assistants often create planning and design documents during development. **U
 - ✅ Preserves planning history for archaeological research
 - ✅ Reduces noise when browsing the project
 
+### Project Documentation
+
+**All permanent project documentation belongs in README.md - do NOT create separate documentation files.**
+
+**README.md is the single source of truth for:**
+- Project overview and purpose
+- Installation and setup instructions
+- Usage examples and API documentation
+- Configuration options
+- Contributing guidelines
+- Architecture and design decisions (permanent, not ephemeral)
+- Troubleshooting and FAQ
+
+**DO NOT create these files:**
+- `CONTRIBUTING.md` - add to README.md ## Contributing section
+- `INSTALL.md` - add to README.md ## Installation section
+- `USAGE.md` - add to README.md ## Usage section
+- `API.md` - add to README.md ## API section
+- `CONFIGURATION.md` - add to README.md ## Configuration section
+- `TROUBLESHOOTING.md` - add to README.md ## Troubleshooting section
+- `FAQ.md` - add to README.md ## FAQ section
+- `ARCHITECTURE.md` (permanent) - add to README.md ## Architecture section
+
+**Exception:** Standard repository files like `LICENSE`, `CHANGELOG.md`, `CODE_OF_CONDUCT.md`, and language-specific files (e.g., `package.json`, `go.mod`) are acceptable.
+
+**Why consolidate in README.md?**
+- ✅ Single place to find all project information
+- ✅ Easier to maintain (one file vs. many)
+- ✅ Better discoverability for new contributors
+- ✅ Reduces documentation fragmentation
+- ✅ Forces concise, well-organized documentation
+
+**If README.md becomes too long:**
+- Use clear section headers with table of contents
+- Consider if the project is too complex
+- Break into multiple repositories if needed
+- But still keep each repo's docs in its README.md
+
 ### Auto-Sync with Git
 
 bd automatically syncs with git:
@@ -228,11 +266,13 @@ git add . && git commit -m "Add user login endpoint with tests"
 - ✅ Link discovered work with `--deps discovered-from:PARENT-ID`
 - ✅ Check `bd ready` before asking "what should I work on?"
 - ✅ Store AI planning docs in `history/` directory
+- ✅ Keep ALL project documentation in README.md (single source of truth)
 - ✅ Commit `.beads/issues.jsonl` together with code changes
 - ❌ Do NOT create markdown TODO lists
 - ❌ Do NOT use external issue trackers
 - ❌ Do NOT duplicate tracking systems
 - ❌ Do NOT clutter repo root with planning documents
+- ❌ Do NOT create separate documentation files (CONTRIBUTING.md, INSTALL.md, etc.)
 
 ---
 
