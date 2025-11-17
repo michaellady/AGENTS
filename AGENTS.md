@@ -154,6 +154,44 @@ AI assistants often create planning and design documents during development. **U
 - ✅ Preserves planning history for archaeological research
 - ✅ Reduces noise when browsing the project
 
+### Project Documentation
+
+**All permanent project documentation belongs in README.md - do NOT create separate documentation files.**
+
+**README.md is the single source of truth for:**
+- Project overview and purpose
+- Installation and setup instructions
+- Usage examples and API documentation
+- Configuration options
+- Contributing guidelines
+- Architecture and design decisions (permanent, not ephemeral)
+- Troubleshooting and FAQ
+
+**DO NOT create these files:**
+- `CONTRIBUTING.md` - add to README.md ## Contributing section
+- `INSTALL.md` - add to README.md ## Installation section
+- `USAGE.md` - add to README.md ## Usage section
+- `API.md` - add to README.md ## API section
+- `CONFIGURATION.md` - add to README.md ## Configuration section
+- `TROUBLESHOOTING.md` - add to README.md ## Troubleshooting section
+- `FAQ.md` - add to README.md ## FAQ section
+- `ARCHITECTURE.md` (permanent) - add to README.md ## Architecture section
+
+**Exception:** Standard repository files like `LICENSE`, `CHANGELOG.md`, `CODE_OF_CONDUCT.md`, and language-specific files (e.g., `package.json`, `go.mod`) are acceptable.
+
+**Why consolidate in README.md?**
+- ✅ Single place to find all project information
+- ✅ Easier to maintain (one file vs. many)
+- ✅ Better discoverability for new contributors
+- ✅ Reduces documentation fragmentation
+- ✅ Forces concise, well-organized documentation
+
+**If README.md becomes too long:**
+- Use clear section headers with table of contents
+- Consider if the project is too complex
+- Break into multiple repositories if needed
+- But still keep each repo's docs in its README.md
+
 ### Auto-Sync with Git
 
 bd automatically syncs with git:
@@ -228,22 +266,29 @@ git add . && git commit -m "Add user login endpoint with tests"
 - ✅ Link discovered work with `--deps discovered-from:PARENT-ID`
 - ✅ Check `bd ready` before asking "what should I work on?"
 - ✅ Store AI planning docs in `history/` directory
+- ✅ Keep ALL project documentation in README.md (single source of truth)
 - ✅ Commit `.beads/issues.jsonl` together with code changes
+- ✅ ALWAYS use feature branch + PR workflow, even for tiny changes
 - ❌ Do NOT create markdown TODO lists
 - ❌ Do NOT use external issue trackers
 - ❌ Do NOT duplicate tracking systems
 - ❌ Do NOT clutter repo root with planning documents
+- ❌ Do NOT create separate documentation files (CONTRIBUTING.md, INSTALL.md, etc.)
+- ❌ NEVER commit or push directly to main/master
 
 ---
 
 ## Rule 3: Git Branch Strategy
 
+**CRITICAL: NEVER commit or push directly to main/master. ALL changes, no matter how small, must go through a feature branch and pull request.**
+
 **Create a new git branch for each bead issue.**
 
 ### Branch Naming
-- **Format:** `[issue-id]` (e.g., `site-abc`, `roller-42`)
+- **Format:** `[issue-id]` (e.g., `AGENTS-42`, `site-abc`)
 - Always branch from `main` unless specified otherwise
-- **NEVER push directly to main** - all changes must go through a feature branch and PR
+- **NEVER push directly to main/master** - all changes must go through a feature branch and PR
+- This applies to ALL changes: bug fixes, typos, documentation updates, everything
 
 ### Workflow
 ```bash
@@ -264,6 +309,9 @@ bd close site-abc -r "Feature complete and tested"
 ```
 
 ### Default Behavior
+
+**ALL work must go through the branch + PR workflow. No exceptions for "small changes" or "quick fixes".**
+
 When completing work on a bead branch:
 1. ✅ Commit all changes with descriptive messages
 2. ✅ Push commits to the remote feature branch
@@ -272,11 +320,11 @@ When completing work on a bead branch:
 5. ✅ Monitor PR checks with `gh pr checks` and ensure they pass
 6. ✅ If checks fail, fix the issues and push additional commits
 7. ✅ Once all checks pass, ask the user to review the PR
-8. ✅ Leave the branch for review (do NOT merge to main)
+8. ✅ Leave the branch for review (do NOT merge to main yourself)
 
 **DO NOT automatically merge to main unless in greenfield mode (see below).**
 
-**IMPORTANT: After completing work on a bead branch, ALWAYS open a PR, ensure all checks pass, and ask the user to review it before merging.**
+**CRITICAL: After completing work on a bead branch, ALWAYS open a PR, ensure all checks pass, and ask the user to review it before merging. This applies to ALL changes, even single-line fixes.**
 
 ### Greenfield Mode
 When working in "greenfield mode" (new projects with no review process), agents MAY merge directly to main:
