@@ -11,6 +11,28 @@ bd onboard
 
 Follow the instructions provided. If the repository already has a `.beads/` directory and this document includes bd workflow information, onboarding is complete and you can skip this step.
 
+## ⚠️ CRITICAL: Commit Message Format
+
+**🚨 ALWAYS USE SINGLE-LINE COMMIT MESSAGES 🚨**
+
+```bash
+# ✅ CORRECT - Single line only
+git commit -m "Add authentication middleware"
+
+# ❌ WRONG - Multi-line, no heredoc needed
+git commit -m "$(cat <<'EOF'
+Add authentication middleware
+...
+EOF
+)"
+```
+
+**Why?** Git hook automatically adds JIRA ID from branch name:
+- You write: `"Add authentication middleware"`
+- Hook transforms to: `"DAX-1234: Add authentication middleware"`
+
+**No heredoc. No multi-line. Just single line descriptions.**
+
 ## Rule 1: Permission Configuration
 
 **All Bash commands are allowed. `rm` commands require user approval.**
@@ -360,6 +382,13 @@ When creating or working with pull requests:
 **Request user approval before executing work on any bead issue.**
 
 **Request user approval before installing any dependencies, packages, or libraries.**
+
+### Getting User Attention
+
+**When asking for user input or approval, make a noise to get their attention:**
+- Use the bell character `\u0007` (ASCII BEL) to trigger a system beep
+- Include it at the start or end of your message when requesting input
+- This helps alert the user when you need their response, especially during long-running tasks
 
 ### Plan Format
 ```
