@@ -383,13 +383,6 @@ When creating or working with pull requests:
 
 **Request user approval before installing any dependencies, packages, or libraries.**
 
-### Getting User Attention
-
-**When asking for user input or approval, make a noise to get their attention:**
-- Use the bell character `\u0007` (ASCII BEL) to trigger a system beep
-- Include it at the start or end of your message when requesting input
-- This helps alert the user when you need their response, especially during long-running tasks
-
 ### Plan Format
 ```
 Ready to work on [issue-id]: [Title]
