@@ -416,6 +416,17 @@ Approve installation? [Yes/No]
 
 **IMPORTANT:** Do NOT install dependencies without explicit approval.
 
+### Dependency Version Policy
+**When adding new dependencies to a project, always use the latest stable version available.**
+
+This ensures:
+- Access to the newest features and improvements
+- Latest security patches and bug fixes
+- Reduced technical debt from outdated dependencies
+- Better long-term compatibility and support
+
+Check the package registry (npm, PyPI, crates.io, etc.) for the most recent stable release before installation.
+
 ---
 
 ## Rule 5: Context Usage Reporting
