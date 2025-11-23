@@ -562,7 +562,9 @@ Follow-up issues filed:
 Quality gates: ✅ All tests passing, no lint errors
 
 Recommended prompt for next session:
-"Continue work on AGENTS-45: Add integration tests for auth flow.
+"please read and apply ../AGENTS/AGENTS.md
+
+Continue work on AGENTS-45: Add integration tests for auth flow.
 The auth middleware is complete and unit tested. Next step is to
 add integration tests covering the full login/logout flow."
 ```
