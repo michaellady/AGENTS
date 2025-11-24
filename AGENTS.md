@@ -60,6 +60,7 @@ EOF
 - ❌ TODO comments in code (`// TODO: fix this`)
 - ❌ Markdown TODO lists (`- [ ] Task`)
 - ❌ FIXME or XXX comments
+- ❌ TodoWrite tool (agent-specific TODO lists)
 - ❌ Any inline task tracking in code or documentation
 
 **Why this matters:**
@@ -80,7 +81,7 @@ bd create "Refactor auth module" -p 2 --deps discovered-from:AGENTS-42
 
 **The rule is simple:** If it needs to be done, it goes in beads. No exceptions.
 
-**Exception for AI Agents:** The `TodoWrite` tool is acceptable for ephemeral, session-specific task tracking (e.g., breaking down complex implementation steps). However, any work that should persist beyond the current session MUST be tracked in beads, not TodoWrite.
+**For AI Agents:** Do NOT use the TodoWrite tool. All task tracking must be done in beads using `bd create`, even for breaking down complex work or planning implementation steps. This ensures all work is properly tracked, prioritized, and persisted.
 
 ### Database Initialization
 
