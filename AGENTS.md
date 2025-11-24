@@ -80,6 +80,8 @@ bd create "Refactor auth module" -p 2 --deps discovered-from:AGENTS-42
 
 **The rule is simple:** If it needs to be done, it goes in beads. No exceptions.
 
+**Exception for AI Agents:** The `TodoWrite` tool is acceptable for ephemeral, session-specific task tracking (e.g., breaking down complex implementation steps). However, any work that should persist beyond the current session MUST be tracked in beads, not TodoWrite.
+
 ### Database Initialization
 
 **If `.beads/` directory doesn't exist, initialize:**
