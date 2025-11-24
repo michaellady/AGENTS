@@ -56,11 +56,29 @@ EOF
 
 ### ⚠️ CRITICAL: Never Use TODO Comments or Lists
 
-**ABSOLUTELY PROHIBITED:**
+**🚨 FOR AI AGENTS: DO NOT USE TodoWrite 🚨**
+
+**AI agents must NEVER use the TodoWrite tool.** All task tracking, planning, and work breakdown must be done exclusively in beads using `bd create`. No exceptions.
+
+- ❌ **NEVER** use TodoWrite for "breaking down complex work"
+- ❌ **NEVER** use TodoWrite for "planning implementation steps"
+- ❌ **NEVER** use TodoWrite for "tracking progress"
+- ✅ **ALWAYS** create beads for every task, sub-task, and work item
+- ✅ **ALWAYS** use `bd create` with proper priorities and dependencies
+
+**Why TodoWrite is prohibited for agents:**
+- Creates parallel tracking systems that diverge from beads
+- Work in TodoWrite is ephemeral and lost between sessions
+- Bypasses dependency tracking and priority management
+- Invisible to project stakeholders and other tools
+- Defeats the entire purpose of using beads for centralized tracking
+
+---
+
+**ALSO ABSOLUTELY PROHIBITED:**
 - ❌ TODO comments in code (`// TODO: fix this`)
 - ❌ Markdown TODO lists (`- [ ] Task`)
 - ❌ FIXME or XXX comments
-- ❌ TodoWrite tool (agent-specific TODO lists)
 - ❌ Any inline task tracking in code or documentation
 
 **Why this matters:**
@@ -77,11 +95,13 @@ bd create "Fix error handling in parseConfig" -t bug -p 1 -d "Found while workin
 
 # Need to track follow-up work? Use discovered-from:
 bd create "Refactor auth module" -p 2 --deps discovered-from:AGENTS-42
+
+# Breaking down complex work? Create sub-tasks as beads:
+bd create "Implement auth middleware - step 1: JWT validation" -t task -p 1
+bd create "Implement auth middleware - step 2: Session management" -t task -p 1
 ```
 
 **The rule is simple:** If it needs to be done, it goes in beads. No exceptions.
-
-**For AI Agents:** Do NOT use the TodoWrite tool. All task tracking must be done in beads using `bd create`, even for breaking down complex work or planning implementation steps. This ensures all work is properly tracked, prioritized, and persisted.
 
 ### Database Initialization
 
