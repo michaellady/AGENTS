@@ -587,6 +587,24 @@ while true; do
 done
 ```
 
+### Running as Background Process
+
+**Always run monitoring as a background process** to allow continued work while waiting:
+
+```bash
+# Start monitoring in background using Bash tool with run_in_background=true
+# This frees up the agent to continue other work while monitoring
+
+# Check output periodically using BashOutput tool
+# Use exponential backoff when polling for results
+```
+
+**Agent workflow:**
+1. Start monitor using Bash with `run_in_background: true`
+2. Continue with other tasks or inform user of wait
+3. Poll for results using BashOutput with exponential backoff
+4. Report status when monitoring completes or user interrupts
+
 ### Benefits
 - Reduces API rate limit consumption
 - Minimizes unnecessary output noise
