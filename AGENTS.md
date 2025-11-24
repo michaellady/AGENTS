@@ -545,6 +545,56 @@ fi
 
 ---
 
+## Rule 7: Monitoring with Exponential Backoff
+
+**When asked to monitor a process, use exponential backoff to avoid excessive polling.**
+
+### When to Use
+- Monitoring CI/CD pipeline status (e.g., `gh pr checks`)
+- Waiting for build completion
+- Watching for deployment status changes
+- Any long-running process that requires periodic checking
+
+### Backoff Strategy
+```
+Initial delay: 5 seconds
+Multiplier: 2x
+Maximum delay: 60 seconds
+Maximum duration: 10 minutes (or until user interrupts)
+```
+
+### Example Sequence
+```
+Check 1: immediate
+Check 2: wait 5s
+Check 3: wait 10s
+Check 4: wait 20s
+Check 5: wait 40s
+Check 6+: wait 60s (capped)
+```
+
+### Implementation
+```bash
+# Example: Monitor PR checks with exponential backoff
+delay=5
+max_delay=60
+while true; do
+  gh pr checks --watch 2>/dev/null && break
+  echo "Checks still running, waiting ${delay}s..."
+  sleep $delay
+  delay=$((delay * 2))
+  [[ $delay -gt $max_delay ]] && delay=$max_delay
+done
+```
+
+### Benefits
+- Reduces API rate limit consumption
+- Minimizes unnecessary output noise
+- Respects external service resources
+- Still provides timely feedback when status changes
+
+---
+
 ## Landing the Plane
 
 **When the user says "let's land the plane"**, follow this clean session-ending protocol:
