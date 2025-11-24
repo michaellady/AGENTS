@@ -54,6 +54,32 @@ EOF
 - Prevents duplicate tracking systems and confusion
 - **Your documentation system**: Use beads for architecture decisions, design notes, and intermediate findings
 
+### ⚠️ CRITICAL: Never Use TODO Comments or Lists
+
+**ABSOLUTELY PROHIBITED:**
+- ❌ TODO comments in code (`// TODO: fix this`)
+- ❌ Markdown TODO lists (`- [ ] Task`)
+- ❌ FIXME or XXX comments
+- ❌ Any inline task tracking in code or documentation
+
+**Why this matters:**
+- TODOs create invisible, untracked work that gets forgotten
+- They bypass dependency tracking and priority management
+- They fragment tracking across multiple systems
+- They're invisible to `bd ready` and other tooling
+- They create technical debt that never gets addressed
+
+**Instead, ALWAYS:**
+```bash
+# Found something that needs work? Create a bead immediately:
+bd create "Fix error handling in parseConfig" -t bug -p 1 -d "Found while working on PARENT-ID"
+
+# Need to track follow-up work? Use discovered-from:
+bd create "Refactor auth module" -p 2 --deps discovered-from:AGENTS-42
+```
+
+**The rule is simple:** If it needs to be done, it goes in beads. No exceptions.
+
 ### Database Initialization
 
 **If `.beads/` directory doesn't exist, initialize:**
