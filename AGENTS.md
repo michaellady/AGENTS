@@ -613,6 +613,80 @@ done
 
 ---
 
+## Rule 8: Parallel Work with Git Worktrees
+
+**When multiple agents work in parallel, each agent MUST use a separate git-worktree for isolation.**
+
+### Why Worktrees?
+- Prevents file conflicts between parallel agents
+- Each agent has isolated working directory
+- Agents can work on different branches simultaneously
+- No need to stash/unstash or context switch
+
+### Setup for Parallel Work
+
+```bash
+# Create worktree for a specific issue (from main repo)
+git worktree add ../REPO-AGENTS-xyz AGENTS-xyz
+
+# Or create worktree with new branch
+git worktree add ../REPO-AGENTS-xyz -b AGENTS-xyz main
+```
+
+### Naming Convention
+```
+../REPO-ISSUE-ID
+```
+Example: If repo is `myapp` and issue is `AGENTS-42`:
+```
+../myapp-AGENTS-42
+```
+
+### Agent Workflow for Parallel Work
+
+1. **Orchestrator creates worktrees** before spawning parallel agents:
+   ```bash
+   # Create worktrees for each parallel task
+   git worktree add ../myapp-AGENTS-42 -b AGENTS-42 main
+   git worktree add ../myapp-AGENTS-43 -b AGENTS-43 main
+   ```
+
+2. **Each agent works in its own worktree**:
+   ```bash
+   cd ../myapp-AGENTS-42
+   # Agent works here in isolation
+   ```
+
+3. **Agents commit and push from their worktree**:
+   ```bash
+   git add . && git commit -m "Complete feature"
+   git push -u origin AGENTS-42
+   ```
+
+4. **Cleanup after merge**:
+   ```bash
+   # From main repo, remove worktree after PR merged
+   git worktree remove ../myapp-AGENTS-42
+   ```
+
+### Listing and Managing Worktrees
+
+```bash
+git worktree list              # Show all worktrees
+git worktree remove <path>     # Remove a worktree
+git worktree prune             # Clean up stale worktrees
+```
+
+### Important Rules
+- ✅ Always create worktree from main repo directory
+- ✅ Use consistent naming: `../REPO-ISSUE-ID`
+- ✅ Each parallel agent gets its own worktree
+- ✅ Clean up worktrees after PRs are merged
+- ❌ Never have multiple agents work in the same directory
+- ❌ Don't delete worktrees with uncommitted changes
+
+---
+
 ## Landing the Plane
 
 **When the user says "let's land the plane"**, follow this clean session-ending protocol:
