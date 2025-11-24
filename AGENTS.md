@@ -502,6 +502,7 @@ Context: 15% used (29368/200000 tokens)
 
 ### Commit Requirements
 - Always commit after modifying, creating, or deleting files
+- **Always include `.beads/issues.jsonl` in commits** - beads database changes must be committed with related code changes
 - Write clear, descriptive commit messages
 - Follow the repository's existing commit message style
 - Include the issue ID in the commit message when working on a bead issue
@@ -551,14 +552,21 @@ fi
 1. **File beads issues for any remaining work** that needs follow-up
 2. **Ensure all quality gates pass** (only if code changes were made) - run tests, linters, builds (file P0 issues if broken)
 3. **Update beads issues** - close finished work, update status
-4. **Sync the issue tracker carefully** - Work methodically to ensure both local and remote issues merge safely. This may require pulling, handling conflicts (sometimes accepting remote changes and re-importing), syncing the database, and verifying consistency. Be creative and patient - the goal is clean reconciliation where no issues are lost.
-5. **Clean up git state** - Clear old stashes and prune dead remote branches:
+4. **Commit and push beads changes to active PR** - If working on a feature branch PR:
+   - Commit any beads database updates: `git add .beads/ && git commit -m "Update beads database"`
+   - Push to the PR branch: `git push`
+   - This ensures beads state is preserved in the PR and synced with remote
+5. **Sync with main if needed** - Only if switching back to main or reconciling:
+   - Work methodically to ensure both local and remote issues merge safely
+   - This may require pulling, handling conflicts, syncing the database
+   - Be creative and patient - the goal is clean reconciliation where no issues are lost
+6. **Clean up git state** - Clear old stashes and prune dead remote branches:
    ```bash
    git stash clear                    # Remove old stashes
    git remote prune origin            # Clean up deleted remote branches
    ```
-6. **Verify clean state** - Ensure all changes are committed and pushed, no untracked files remain
-7. **Choose a follow-up issue for next session**
+7. **Verify clean state** - Ensure all changes are committed and pushed, no untracked files remain
+8. **Choose a follow-up issue for next session**
    - Provide a prompt for the user to give to you in the next session
    - Format: "Continue work on ISSUE-ID: [issue title]. [Brief context about what's been done and what's next]"
 
@@ -575,24 +583,24 @@ npm run lint            # or: golangci-lint run, etc.
 # 3. Close finished issues
 bd close AGENTS-42 --reason "Completed feature and tests passing"
 
-# 4. Sync carefully - example workflow (adapt as needed):
-git pull --rebase
-# If conflicts in .beads/issues.jsonl, resolve thoughtfully:
-#   - git checkout --theirs .beads/issues.jsonl (accept remote)
-#   - bd import -i .beads/issues.jsonl (re-import)
-#   - Or manual merge, then import
-bd sync  # Export/import/verify
+# 4. Commit and push beads changes to active PR (if on feature branch)
+git add .beads/
+git commit -m "Update beads database after closing AGENTS-42"
 git push
-# Repeat pull/push if needed until clean
 
-# 5. Clean up git state
+# 5. Sync with main if needed (only when switching branches or reconciling)
+# Usually not needed during active PR work
+# git checkout main && git pull
+# Resolve any conflicts if needed
+
+# 6. Clean up git state
 git stash clear
 git remote prune origin
 
-# 6. Verify clean state
+# 7. Verify clean state
 git status
 
-# 7. Choose next work
+# 8. Choose next work
 bd ready
 bd show AGENTS-44
 ```
