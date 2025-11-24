@@ -545,6 +545,74 @@ fi
 
 ---
 
+## Rule 7: Monitoring with Exponential Backoff
+
+**When asked to monitor a process, use exponential backoff to avoid excessive polling.**
+
+### When to Use
+- Monitoring CI/CD pipeline status (e.g., `gh pr checks`)
+- Waiting for build completion
+- Watching for deployment status changes
+- Any long-running process that requires periodic checking
+
+### Backoff Strategy
+```
+Initial delay: 5 seconds
+Multiplier: 2x
+Maximum delay: 60 seconds
+Maximum duration: 10 minutes (or until user interrupts)
+```
+
+### Example Sequence
+```
+Check 1: immediate
+Check 2: wait 5s
+Check 3: wait 10s
+Check 4: wait 20s
+Check 5: wait 40s
+Check 6+: wait 60s (capped)
+```
+
+### Implementation
+```bash
+# Example: Monitor PR checks with exponential backoff
+delay=5
+max_delay=60
+while true; do
+  gh pr checks --watch 2>/dev/null && break
+  echo "Checks still running, waiting ${delay}s..."
+  sleep $delay
+  delay=$((delay * 2))
+  [[ $delay -gt $max_delay ]] && delay=$max_delay
+done
+```
+
+### Running as Background Process
+
+**Always run monitoring as a background process** to allow continued work while waiting:
+
+```bash
+# Start monitoring in background using Bash tool with run_in_background=true
+# This frees up the agent to continue other work while monitoring
+
+# Check output periodically using BashOutput tool
+# Use exponential backoff when polling for results
+```
+
+**Agent workflow:**
+1. Start monitor using Bash with `run_in_background: true`
+2. Continue with other tasks or inform user of wait
+3. Poll for results using BashOutput with exponential backoff
+4. Report status when monitoring completes or user interrupts
+
+### Benefits
+- Reduces API rate limit consumption
+- Minimizes unnecessary output noise
+- Respects external service resources
+- Still provides timely feedback when status changes
+
+---
+
 ## Landing the Plane
 
 **When the user says "let's land the plane"**, follow this clean session-ending protocol:
