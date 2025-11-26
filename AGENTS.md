@@ -839,3 +839,95 @@ Continue work on AGENTS-45: Add integration tests for auth flow.
 The auth middleware is complete and unit tested. Next step is to
 add integration tests covering the full login/logout flow."
 ```
+
+---
+
+## Pass the Baton
+
+**When the user says "pass the baton"**, execute the full "Land the Plane" protocol, then automatically spawn a new agent to continue the work.
+
+### How It Works
+
+1. **Execute all "Land the Plane" steps** (1-8 above)
+2. **Build the continuation prompt** including:
+   - Instructions to read and apply AGENTS.md
+   - The recommended follow-up issue and context
+   - Any critical information the next agent needs
+3. **Spawn a new agent** using the Task tool with `subagent_type: "general-purpose"`
+4. **Pass the baton** by sending the continuation prompt to the new agent
+
+### Implementation
+
+After completing "Land the Plane" steps 1-7, instead of just providing a recommended prompt:
+
+```
+# Step 8 becomes: Spawn continuation agent
+
+Use the Task tool with:
+- subagent_type: "general-purpose"
+- prompt: The full continuation prompt (see format below)
+```
+
+### Continuation Prompt Format
+
+The prompt passed to the new agent should include:
+
+```
+please read and apply ../AGENTS/AGENTS.md
+
+Continue work on [ISSUE-ID]: [issue title].
+
+## Context from previous session
+- What was completed: [summary]
+- Current state: [branch name, PR status if any]
+- Next steps: [specific actions to take]
+
+## Important notes
+- [Any blockers, gotchas, or critical information]
+- [Dependencies or related issues]
+
+Begin by running `bd show [ISSUE-ID]` to review the issue details.
+```
+
+### Example "Pass the Baton" Flow
+
+```
+User: "pass the baton"
+
+Agent:
+1. Files remaining work as beads
+2. Runs quality gates
+3. Closes finished issues
+4. Commits and pushes beads changes
+5. Cleans up git state
+6. Verifies clean state
+7. Identifies next issue (AGENTS-45)
+8. Spawns new agent with prompt:
+
+   "please read and apply ../AGENTS/AGENTS.md
+
+   Continue work on AGENTS-45: Add integration tests for auth flow.
+
+   ## Context from previous session
+   - Completed: JWT auth middleware with unit tests (AGENTS-42, AGENTS-43)
+   - Current state: On branch main, all PRs merged
+   - Next steps: Create integration tests for login/logout endpoints
+
+   ## Important notes
+   - Auth middleware is in src/middleware/auth.ts
+   - Test utilities are in tests/helpers/
+
+   Begin by running `bd show AGENTS-45` to review the issue details."
+```
+
+### When to Use
+
+- **"pass the baton"**: Auto-continue with new agent (no human intervention needed)
+- **"land the plane"**: End session, provide prompt for human to start next session
+
+### Benefits
+
+- Enables continuous autonomous work across context window limits
+- Preserves critical context between agent sessions
+- Maintains workflow continuity without human copy-paste
+- Each agent starts fresh with full context budget
