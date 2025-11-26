@@ -330,6 +330,71 @@ git add . && git commit -m "Add user login endpoint with tests"
 - Prevents breaking existing functionality
 - Faster iteration cycles
 
+### Code Coverage Tracking
+
+**Set up code coverage tracking on all projects wherever possible.**
+
+Code coverage helps agents understand which code paths are tested and which need attention.
+
+**Setup by language:**
+
+```bash
+# Go
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+
+# TypeScript/JavaScript (Jest)
+jest --coverage
+
+# Python (pytest)
+pytest --cov=src --cov-report=html
+
+# Rust
+cargo tarpaulin --out Html
+```
+
+**Configuration files to add:**
+
+```yaml
+# For Go: Add to Makefile or CI
+coverage:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -func=coverage.out
+
+# For TypeScript: Add to package.json
+"scripts": {
+  "test:coverage": "jest --coverage"
+}
+"jest": {
+  "coverageThreshold": {
+    "global": { "lines": 80 }
+  }
+}
+
+# For Python: Add to pyproject.toml
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+```
+
+**Coverage targets:**
+- **New projects**: Aim for 80%+ line coverage from the start
+- **Existing projects**: Don't decrease coverage when adding code
+- **Critical paths**: 100% coverage for authentication, payments, data validation
+
+**CI Integration:**
+- Add coverage reporting to CI/CD pipeline
+- Fail builds if coverage drops below threshold
+- Use coverage badges in README for visibility
+
+**Why coverage matters for agents:**
+- Identifies untested code paths before they become bugs
+- Guides where to add tests when modifying existing code
+- Provides confidence metric for refactoring
+- Makes "is this tested?" an answerable question
+
 ### Important Rules
 
 - ✅ Use bd for ALL task tracking
@@ -687,6 +752,67 @@ git worktree prune             # Clean up stale worktrees
 
 ---
 
+## Rule 9: Prefer Statically Typed Languages
+
+**When creating new projects, prefer statically typed languages like Go or Kotlin.**
+
+### Why Static Types?
+- **Lego block assembly**: Types make code snap together cleanly—function signatures tell you exactly what goes in and what comes out
+- **Agent-friendly**: AI agents can reason about type contracts without needing to trace through runtime behavior
+- **Easier testing**: Type mismatches are caught at compile time, not in production
+- **Self-documenting**: Types serve as inline documentation that stays in sync with the code
+- **Refactoring confidence**: The compiler catches cascading changes across the codebase
+
+### Recommended Languages
+- **Go**: Simple, fast compilation, excellent tooling, great for services and CLI tools
+- **Kotlin**: Modern, expressive, excellent for JVM-based applications and Android
+- **TypeScript**: When JavaScript ecosystem is required
+- **Rust**: When memory safety and performance are critical
+
+### When Using Scripting Languages
+
+If the project natively uses a scripting language (Python, JavaScript, Ruby, etc.), **always use types**:
+
+```python
+# ✅ GOOD - Python with type hints
+def process_user(user_id: int, options: ProcessOptions) -> UserResult:
+    ...
+
+# ❌ BAD - No types
+def process_user(user_id, options):
+    ...
+```
+
+```javascript
+// ✅ GOOD - Use TypeScript instead of JavaScript
+function processUser(userId: number, options: ProcessOptions): UserResult {
+    ...
+}
+
+// ❌ BAD - Plain JavaScript without types
+function processUser(userId, options) {
+    ...
+}
+```
+
+### Type Coverage Requirements
+- **New projects**: 100% type coverage from the start
+- **Existing projects**: Add types to any code you modify
+- **Use strict mode**: Enable strict type checking in compiler/linter settings
+  - TypeScript: `"strict": true`
+  - Python: Use `mypy --strict` or pyright strict mode
+  - Go: Types are mandatory (built-in)
+
+### Benefits for AI Agents
+When agents work with typed code:
+- Function signatures provide clear contracts without reading implementation
+- Autocomplete and suggestions are more accurate
+- Errors are caught during code generation, not execution
+- Refactoring across files is safer and more reliable
+- Code review can focus on logic, not type mismatches
+
+---
+
 ## Landing the Plane
 
 **When the user says "let's land the plane"**, follow this clean session-ending protocol:
@@ -778,3 +904,95 @@ Continue work on AGENTS-45: Add integration tests for auth flow.
 The auth middleware is complete and unit tested. Next step is to
 add integration tests covering the full login/logout flow."
 ```
+
+---
+
+## Pass the Baton
+
+**When the user says "pass the baton"**, execute the full "Land the Plane" protocol, then automatically spawn a new agent to continue the work.
+
+### How It Works
+
+1. **Execute all "Land the Plane" steps** (1-8 above)
+2. **Build the continuation prompt** including:
+   - Instructions to read and apply AGENTS.md
+   - The recommended follow-up issue and context
+   - Any critical information the next agent needs
+3. **Spawn a new agent** using the Task tool with `subagent_type: "general-purpose"`
+4. **Pass the baton** by sending the continuation prompt to the new agent
+
+### Implementation
+
+After completing "Land the Plane" steps 1-7, instead of just providing a recommended prompt:
+
+```
+# Step 8 becomes: Spawn continuation agent
+
+Use the Task tool with:
+- subagent_type: "general-purpose"
+- prompt: The full continuation prompt (see format below)
+```
+
+### Continuation Prompt Format
+
+The prompt passed to the new agent should include:
+
+```
+please read and apply ../AGENTS/AGENTS.md
+
+Continue work on [ISSUE-ID]: [issue title].
+
+## Context from previous session
+- What was completed: [summary]
+- Current state: [branch name, PR status if any]
+- Next steps: [specific actions to take]
+
+## Important notes
+- [Any blockers, gotchas, or critical information]
+- [Dependencies or related issues]
+
+Begin by running `bd show [ISSUE-ID]` to review the issue details.
+```
+
+### Example "Pass the Baton" Flow
+
+```
+User: "pass the baton"
+
+Agent:
+1. Files remaining work as beads
+2. Runs quality gates
+3. Closes finished issues
+4. Commits and pushes beads changes
+5. Cleans up git state
+6. Verifies clean state
+7. Identifies next issue (AGENTS-45)
+8. Spawns new agent with prompt:
+
+   "please read and apply ../AGENTS/AGENTS.md
+
+   Continue work on AGENTS-45: Add integration tests for auth flow.
+
+   ## Context from previous session
+   - Completed: JWT auth middleware with unit tests (AGENTS-42, AGENTS-43)
+   - Current state: On branch main, all PRs merged
+   - Next steps: Create integration tests for login/logout endpoints
+
+   ## Important notes
+   - Auth middleware is in src/middleware/auth.ts
+   - Test utilities are in tests/helpers/
+
+   Begin by running `bd show AGENTS-45` to review the issue details."
+```
+
+### When to Use
+
+- **"pass the baton"**: Auto-continue with new agent (no human intervention needed)
+- **"land the plane"**: End session, provide prompt for human to start next session
+
+### Benefits
+
+- Enables continuous autonomous work across context window limits
+- Preserves critical context between agent sessions
+- Maintains workflow continuity without human copy-paste
+- Each agent starts fresh with full context budget
