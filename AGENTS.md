@@ -687,6 +687,67 @@ git worktree prune             # Clean up stale worktrees
 
 ---
 
+## Rule 9: Prefer Statically Typed Languages
+
+**When creating new projects, prefer statically typed languages like Go or Kotlin.**
+
+### Why Static Types?
+- **Lego block assembly**: Types make code snap together cleanly—function signatures tell you exactly what goes in and what comes out
+- **Agent-friendly**: AI agents can reason about type contracts without needing to trace through runtime behavior
+- **Easier testing**: Type mismatches are caught at compile time, not in production
+- **Self-documenting**: Types serve as inline documentation that stays in sync with the code
+- **Refactoring confidence**: The compiler catches cascading changes across the codebase
+
+### Recommended Languages
+- **Go**: Simple, fast compilation, excellent tooling, great for services and CLI tools
+- **Kotlin**: Modern, expressive, excellent for JVM-based applications and Android
+- **TypeScript**: When JavaScript ecosystem is required
+- **Rust**: When memory safety and performance are critical
+
+### When Using Scripting Languages
+
+If the project natively uses a scripting language (Python, JavaScript, Ruby, etc.), **always use types**:
+
+```python
+# ✅ GOOD - Python with type hints
+def process_user(user_id: int, options: ProcessOptions) -> UserResult:
+    ...
+
+# ❌ BAD - No types
+def process_user(user_id, options):
+    ...
+```
+
+```javascript
+// ✅ GOOD - Use TypeScript instead of JavaScript
+function processUser(userId: number, options: ProcessOptions): UserResult {
+    ...
+}
+
+// ❌ BAD - Plain JavaScript without types
+function processUser(userId, options) {
+    ...
+}
+```
+
+### Type Coverage Requirements
+- **New projects**: 100% type coverage from the start
+- **Existing projects**: Add types to any code you modify
+- **Use strict mode**: Enable strict type checking in compiler/linter settings
+  - TypeScript: `"strict": true`
+  - Python: Use `mypy --strict` or pyright strict mode
+  - Go: Types are mandatory (built-in)
+
+### Benefits for AI Agents
+When agents work with typed code:
+- Function signatures provide clear contracts without reading implementation
+- Autocomplete and suggestions are more accurate
+- Errors are caught during code generation, not execution
+- Refactoring across files is safer and more reliable
+- Code review can focus on logic, not type mismatches
+
+---
+
 ## Landing the Plane
 
 **When the user says "let's land the plane"**, follow this clean session-ending protocol:
