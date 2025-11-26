@@ -330,6 +330,71 @@ git add . && git commit -m "Add user login endpoint with tests"
 - Prevents breaking existing functionality
 - Faster iteration cycles
 
+### Code Coverage Tracking
+
+**Set up code coverage tracking on all projects wherever possible.**
+
+Code coverage helps agents understand which code paths are tested and which need attention.
+
+**Setup by language:**
+
+```bash
+# Go
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+
+# TypeScript/JavaScript (Jest)
+jest --coverage
+
+# Python (pytest)
+pytest --cov=src --cov-report=html
+
+# Rust
+cargo tarpaulin --out Html
+```
+
+**Configuration files to add:**
+
+```yaml
+# For Go: Add to Makefile or CI
+coverage:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -func=coverage.out
+
+# For TypeScript: Add to package.json
+"scripts": {
+  "test:coverage": "jest --coverage"
+}
+"jest": {
+  "coverageThreshold": {
+    "global": { "lines": 80 }
+  }
+}
+
+# For Python: Add to pyproject.toml
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+```
+
+**Coverage targets:**
+- **New projects**: Aim for 80%+ line coverage from the start
+- **Existing projects**: Don't decrease coverage when adding code
+- **Critical paths**: 100% coverage for authentication, payments, data validation
+
+**CI Integration:**
+- Add coverage reporting to CI/CD pipeline
+- Fail builds if coverage drops below threshold
+- Use coverage badges in README for visibility
+
+**Why coverage matters for agents:**
+- Identifies untested code paths before they become bugs
+- Guides where to add tests when modifying existing code
+- Provides confidence metric for refactoring
+- Makes "is this tested?" an answerable question
+
 ### Important Rules
 
 - ✅ Use bd for ALL task tracking
