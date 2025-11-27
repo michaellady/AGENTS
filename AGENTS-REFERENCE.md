@@ -1,0 +1,998 @@
+# Agent Rules & Guidelines
+
+This document contains the rules and guidelines for Claude agents.
+
+## BEFORE ANYTHING ELSE
+
+**When starting work in a new repository, run:**
+```bash
+bd onboard
+```
+
+Follow the instructions provided. If the repository already has a `.beads/` directory and this document includes bd workflow information, onboarding is complete and you can skip this step.
+
+## ⚠️ CRITICAL: Commit Message Format
+
+**🚨 ALWAYS USE SINGLE-LINE COMMIT MESSAGES 🚨**
+
+```bash
+# ✅ CORRECT - Single line only
+git commit -m "Add authentication middleware"
+
+# ❌ WRONG - Multi-line, no heredoc needed
+git commit -m "$(cat <<'EOF'
+Add authentication middleware
+...
+EOF
+)"
+```
+
+**Why?** Git hook automatically adds JIRA ID from branch name:
+- You write: `"Add authentication middleware"`
+- Hook transforms to: `"DAX-1234: Add authentication middleware"`
+
+**No heredoc. No multi-line. Just single line descriptions.**
+
+## Rule 1: Permission Configuration
+
+**All Bash commands are allowed. `rm` commands require user approval.**
+
+✅ **Allowed:** All Bash commands except `rm`
+⚠️ **Requires Approval:** Any command starting with `rm`
+
+---
+
+## Rule 2: Issue Tracking with bd (beads)
+
+**IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
+
+### Why bd?
+
+- Dependency-aware: Track blockers and relationships between issues
+- Git-friendly: Auto-syncs to JSONL for version control
+- Agent-optimized: JSON output, ready work detection, discovered-from links
+- Prevents duplicate tracking systems and confusion
+- **Your documentation system**: Use beads for architecture decisions, design notes, and intermediate findings
+
+### ⚠️ CRITICAL: Never Use TODO Comments or Lists
+
+**🚨 FOR AI AGENTS: DO NOT USE TodoWrite 🚨**
+
+**AI agents must NEVER use the TodoWrite tool.** All task tracking, planning, and work breakdown must be done exclusively in beads using `bd create`. No exceptions.
+
+- ❌ **NEVER** use TodoWrite for "breaking down complex work"
+- ❌ **NEVER** use TodoWrite for "planning implementation steps"
+- ❌ **NEVER** use TodoWrite for "tracking progress"
+- ✅ **ALWAYS** create beads for every task, sub-task, and work item
+- ✅ **ALWAYS** use `bd create` with proper priorities and dependencies
+
+**Why TodoWrite is prohibited for agents:**
+- Creates parallel tracking systems that diverge from beads
+- Work in TodoWrite is ephemeral and lost between sessions
+- Bypasses dependency tracking and priority management
+- Invisible to project stakeholders and other tools
+- Defeats the entire purpose of using beads for centralized tracking
+
+---
+
+**ALSO ABSOLUTELY PROHIBITED:**
+- ❌ TODO comments in code (`// TODO: fix this`)
+- ❌ Markdown TODO lists (`- [ ] Task`)
+- ❌ FIXME or XXX comments
+- ❌ Any inline task tracking in code or documentation
+
+**Why this matters:**
+- TODOs create invisible, untracked work that gets forgotten
+- They bypass dependency tracking and priority management
+- They fragment tracking across multiple systems
+- They're invisible to `bd ready` and other tooling
+- They create technical debt that never gets addressed
+
+**Instead, ALWAYS:**
+```bash
+# Found something that needs work? Create a bead immediately:
+bd create "Fix error handling in parseConfig" -t bug -p 1 -d "Found while working on PARENT-ID"
+
+# Need to track follow-up work? Use discovered-from:
+bd create "Refactor auth module" -p 2 --deps discovered-from:AGENTS-42
+
+# Breaking down complex work? Create sub-tasks as beads:
+bd create "Implement auth middleware - step 1: JWT validation" -t task -p 1
+bd create "Implement auth middleware - step 2: Session management" -t task -p 1
+```
+
+**The rule is simple:** If it needs to be done, it goes in beads. No exceptions.
+
+### Database Initialization
+
+**If `.beads/` directory doesn't exist, initialize:**
+```bash
+bd init
+```
+
+**Verify you're using the LOCAL repository database:**
+```bash
+# Check if local .beads directory exists
+ls -la .beads 2>/dev/null && echo "✓ Using local database" || echo "⚠ No local database found"
+
+# Verify issues use the repository's prefix
+bd list | head -3
+```
+
+**Common issue:** Using a global beads database instead of repository-specific one. Solution: Run `bd init` in the repository root.
+
+### Quick Reference
+
+**Check for ready work:**
+```bash
+bd ready                        # Show unblocked issues
+bd ready --json                 # JSON output for programmatic use
+```
+
+**Create issues:**
+```bash
+bd create "Issue title" -t bug|feature|task|epic|chore -p 0-4 -d "Description"
+bd create "Found bug" -p 1 --deps discovered-from:PARENT-ID    # Link discovered work
+```
+
+**Issue Types:** `bug`, `feature`, `task`, `epic`, `chore`
+**Priorities:** `0` (critical) → `4` (backlog), default: `2`
+
+**Update and claim:**
+```bash
+bd update ISSUE-ID --status in_progress    # Claim work
+bd update ISSUE-ID --priority 1            # Change priority
+bd update ISSUE-ID --notes "Additional details"
+```
+
+**Statuses:** `open`, `in_progress`, `blocked`, `closed`
+
+**Complete work:**
+```bash
+bd close ISSUE-ID --reason "Completed"
+```
+
+**View issues:**
+```bash
+bd list                  # All issues
+bd list -s open          # Filter by status
+bd show ISSUE-ID         # Show details
+```
+
+**Note:** Add `--json` flag to any command when you need JSON output for programmatic parsing.
+
+### Workflow for AI Agents
+
+1. **Check ready work**: `bd ready` shows unblocked issues
+2. **Claim your task**: `bd update ISSUE-ID --status in_progress`
+3. **Work on it**: Implement, test, document
+4. **Discover new work?** Create linked issue:
+   - `bd create "Found bug" -p 1 --deps discovered-from:PARENT-ID`
+5. **Complete**: `bd close ISSUE-ID --reason "Done"`
+6. **Commit together**: Always commit `.beads/issues.jsonl` with code changes to keep issue state in sync
+
+**Note:** Use `--json` flag when you need structured output for parsing (e.g., `bd ready --json`).
+
+### Workflow Example
+```bash
+# Check what's ready to work on
+bd ready
+
+# Create and start work
+bd create "Implement user auth" -t feature -p 1 -d "Add JWT-based auth system"
+bd update AGENTS-42 --status in_progress
+
+# Add notes as you work
+bd update AGENTS-42 --notes "Implemented login endpoint, testing logout"
+
+# Close when complete
+bd close AGENTS-42 --reason "JWT auth with login/logout endpoints working"
+```
+
+### What to Track in Beads
+Document EVERYTHING in beads using issue descriptions and notes:
+- **Architecture decisions and design notes**
+- **Research findings and technical investigations**
+- **Intermediate documentation and work progress**
+- Test results and fixes applied
+- Build outputs and deployment info
+- Bug investigations and resolutions
+- Configuration changes and their impact
+- Implementation details and code explanations
+- Meeting notes and discussion points
+- Any information you would normally put in a markdown file
+
+### Managing AI-Generated Planning Documents
+
+AI assistants often create planning and design documents during development. **Use a dedicated directory for these ephemeral files:**
+
+**Recommended approach:**
+- Create a `history/` directory in the project root
+- Store ALL AI-generated planning/design docs in `history/`
+- Keep the repository root clean and focused on permanent project files
+- Only access `history/` when explicitly asked to review past planning
+
+**Files to store in history/:**
+- `PLAN.md`, `IMPLEMENTATION.md`, `ARCHITECTURE.md`
+- `DESIGN.md`, `CODEBASE_SUMMARY.md`, `INTEGRATION_PLAN.md`
+- `TESTING_GUIDE.md`, `TECHNICAL_DESIGN.md`, and similar files
+
+**For work tracking and intermediate documentation:** Use `bd update ISSUE-ID --notes "Your documentation here"`
+
+**Benefits:**
+- ✅ Clean repository root
+- ✅ Clear separation between ephemeral and permanent documentation
+- ✅ Preserves planning history for archaeological research
+- ✅ Reduces noise when browsing the project
+
+### Project Documentation
+
+**All permanent project documentation belongs in README.md - do NOT create separate documentation files.**
+
+**README.md is the single source of truth for:**
+- Project overview and purpose
+- Installation and setup instructions
+- Usage examples and API documentation
+- Configuration options
+- Contributing guidelines
+- Architecture and design decisions (permanent, not ephemeral)
+- Troubleshooting and FAQ
+
+**DO NOT create these files:**
+- `CONTRIBUTING.md` - add to README.md ## Contributing section
+- `INSTALL.md` - add to README.md ## Installation section
+- `USAGE.md` - add to README.md ## Usage section
+- `API.md` - add to README.md ## API section
+- `CONFIGURATION.md` - add to README.md ## Configuration section
+- `TROUBLESHOOTING.md` - add to README.md ## Troubleshooting section
+- `FAQ.md` - add to README.md ## FAQ section
+- `ARCHITECTURE.md` (permanent) - add to README.md ## Architecture section
+
+**Exception:** Standard repository files like `LICENSE`, `CHANGELOG.md`, `CODE_OF_CONDUCT.md`, and language-specific files (e.g., `package.json`, `go.mod`) are acceptable.
+
+**Why consolidate in README.md?**
+- ✅ Single place to find all project information
+- ✅ Easier to maintain (one file vs. many)
+- ✅ Better discoverability for new contributors
+- ✅ Reduces documentation fragmentation
+- ✅ Forces concise, well-organized documentation
+
+**If README.md becomes too long:**
+- Use clear section headers with table of contents
+- Consider if the project is too complex
+- Break into multiple repositories if needed
+- But still keep each repo's docs in its README.md
+
+### Auto-Sync with Git
+
+bd automatically syncs with git:
+- Exports to `.beads/issues.jsonl` after changes (5s debounce)
+- Imports from JSONL when newer (e.g., after `git pull`)
+- No manual export/import needed!
+- **Always commit `.beads/issues.jsonl` together with code changes** to keep issue state in sync
+
+### Planning Strategy
+
+When planning work with beads (especially for epics and features):
+
+**Focus on the critical path to a Minimum Viable Testable (MVT) project:**
+- Identify the smallest set of features needed to test the core functionality
+- Break down work into incremental, testable milestones
+- Prioritize tasks that unblock testing and validation
+- Defer nice-to-haves and optimizations until after MVT is working
+
+**Example Planning Approach:**
+```bash
+# Create epic for overall feature
+bd create "User Authentication System" -t epic -p 1 -d "MVT: Basic login/logout with session management"
+
+# Create critical path tasks
+bd create "Database schema for users table" -t task -p 1 -d "Required for MVT"
+bd create "Login endpoint with session creation" -t task -p 1 -d "Core MVT functionality"
+bd create "Logout endpoint" -t task -p 1 -d "Core MVT functionality"
+bd create "Basic auth middleware" -t task -p 1 -d "Required to test protected routes"
+
+# Defer non-critical items
+bd create "Password reset flow" -t feature -p 2 -d "Post-MVT enhancement"
+bd create "OAuth integration" -t feature -p 3 -d "Post-MVT enhancement"
+```
+
+**Key principle:** Get to a testable state as quickly as possible, then iterate.
+
+### Test-Driven Development
+**Write automated tests BEFORE implementation whenever possible:**
+- Tests provide a clear target for what "done" looks like
+- Tests give you something concrete to iterate against
+- Failing tests guide implementation and catch regressions
+- Tests document expected behavior
+
+**Recommended workflow:**
+```bash
+# 1. Create the task
+bd create "Add user login endpoint" -t task -p 1 -d "POST /login with email/password"
+
+# 2. Write the test first (it will fail)
+# Create test file with expected behavior
+
+# 3. Run tests to confirm they fail
+# This validates the test is actually testing something
+
+# 4. Implement the feature
+# Write code until tests pass
+
+# 5. Commit when tests pass
+git add . && git commit -m "Add user login endpoint with tests"
+```
+
+**Benefits:**
+- Clear definition of done (tests pass)
+- Confidence when refactoring
+- Prevents breaking existing functionality
+- Faster iteration cycles
+
+### Code Coverage Tracking
+
+**Set up code coverage tracking on all projects wherever possible.**
+
+Code coverage helps agents understand which code paths are tested and which need attention.
+
+**Setup by language:**
+
+```bash
+# Go
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+
+# TypeScript/JavaScript (Jest)
+jest --coverage
+
+# Python (pytest)
+pytest --cov=src --cov-report=html
+
+# Rust
+cargo tarpaulin --out Html
+```
+
+**Configuration files to add:**
+
+```yaml
+# For Go: Add to Makefile or CI
+coverage:
+	go test -coverprofile=coverage.out ./...
+	go tool cover -func=coverage.out
+
+# For TypeScript: Add to package.json
+"scripts": {
+  "test:coverage": "jest --coverage"
+}
+"jest": {
+  "coverageThreshold": {
+    "global": { "lines": 80 }
+  }
+}
+
+# For Python: Add to pyproject.toml
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+```
+
+**Coverage targets:**
+- **New projects**: Aim for 80%+ line coverage from the start
+- **Existing projects**: Don't decrease coverage when adding code
+- **Critical paths**: 100% coverage for authentication, payments, data validation
+
+**CI Integration:**
+- Add coverage reporting to CI/CD pipeline
+- Fail builds if coverage drops below threshold
+- Use coverage badges in README for visibility
+
+**Why coverage matters for agents:**
+- Identifies untested code paths before they become bugs
+- Guides where to add tests when modifying existing code
+- Provides confidence metric for refactoring
+- Makes "is this tested?" an answerable question
+
+### Important Rules
+
+- ✅ Use bd for ALL task tracking
+- ✅ Use `--json` flag for programmatic parsing when needed
+- ✅ Link discovered work with `--deps discovered-from:PARENT-ID`
+- ✅ Check `bd ready` before asking "what should I work on?"
+- ✅ Store AI planning docs in `history/` directory
+- ✅ Keep ALL project documentation in README.md (single source of truth)
+- ✅ Commit `.beads/issues.jsonl` together with code changes
+- ✅ ALWAYS use feature branch + PR workflow, even for tiny changes
+- ❌ Do NOT create markdown TODO lists
+- ❌ Do NOT use external issue trackers
+- ❌ Do NOT duplicate tracking systems
+- ❌ Do NOT clutter repo root with planning documents
+- ❌ Do NOT create separate documentation files (CONTRIBUTING.md, INSTALL.md, etc.)
+- ❌ NEVER commit or push directly to main/master
+
+---
+
+## Rule 3: Git Branch Strategy
+
+**CRITICAL: NEVER commit or push directly to main/master. ALL changes, no matter how small, must go through a feature branch and pull request.**
+
+**Create a new git branch for each bead issue.**
+
+### Branch Naming
+- **Format:** `[issue-id]` (e.g., `AGENTS-42`, `site-abc`)
+- Always branch from `main` unless specified otherwise
+- **NEVER push directly to main/master** - all changes must go through a feature branch and PR
+- This applies to ALL changes: bug fixes, typos, documentation updates, everything
+
+### Workflow
+```bash
+# Start work on issue
+git checkout main
+git checkout -b site-abc
+bd update site-abc -s in_progress
+
+# Make changes and commit
+git add .
+git commit -m "Implement feature (site-abc)"
+
+# Push to remote feature branch
+git push -u origin site-abc
+
+# Close the bead when done
+bd close site-abc -r "Feature complete and tested"
+```
+
+### Default Behavior
+
+**ALL work must go through the branch + PR workflow. No exceptions for "small changes" or "quick fixes".**
+
+When completing work on a bead branch:
+1. ✅ Commit all changes with descriptive messages
+2. ✅ Push commits to the remote feature branch
+3. ✅ Close the bead issue with `bd close [issue-id] -r "reason"`
+4. ✅ Open a pull request with `gh pr create`
+5. ✅ Monitor PR checks with `gh pr checks` and ensure they pass
+6. ✅ If checks fail, fix the issues and push additional commits
+7. ✅ Once all checks pass, ask the user to review the PR
+8. ✅ Leave the branch for review (do NOT merge to main yourself)
+
+**DO NOT automatically merge to main unless in greenfield mode (see below).**
+
+**CRITICAL: After completing work on a bead branch, ALWAYS open a PR, ensure all checks pass, and ask the user to review it before merging. This applies to ALL changes, even single-line fixes.**
+
+### Greenfield Mode
+When working in "greenfield mode" (new projects with no review process), agents MAY merge directly to main:
+
+```bash
+# After closing the bead
+bd close site-abc -r "Feature complete and tested"
+git checkout main
+git merge site-abc
+git branch -d site-abc
+```
+
+**Only use greenfield mode auto-merge when explicitly instructed by the user.**
+
+### Pull Request Guidelines
+When creating or working with pull requests:
+- Always wait for all CI/CD checks to pass before merging
+- Do NOT merge PRs with failing tests, linting errors, or other check failures
+- If checks fail, fix the issues and push additional commits to the feature branch
+- Use `gh pr checks` to monitor the status of PR checks
+- **NEVER squash commits** - preserve git history by keeping all commits intact
+- Use regular merge (not squash merge or rebase merge) to maintain full commit history
+- After PR is merged, delete the feature branch both locally and remotely:
+  ```bash
+  git branch -d [issue-id]
+  git push origin --delete [issue-id]
+  ```
+
+---
+
+## Rule 4: User Review Before Execution
+
+**Request user approval before executing work on any bead issue.**
+
+**Request user approval before installing any dependencies, packages, or libraries.**
+
+### Plan Format
+```
+Ready to work on [issue-id]: [Title]
+
+Problem: [description]
+
+Plan:
+- [bullet points of what will be done]
+
+Files to modify: [list]
+Estimated time: [time estimate]
+Risk level: [Low/Medium/High]
+
+Proceed? [Yes/No]
+```
+
+**IMPORTANT:** Wait for explicit user approval before proceeding. Do NOT execute without "Yes".
+
+### Dependencies Request Format
+If your implementation requires new dependencies, list them for approval:
+```
+Dependencies needed for [issue-id]:
+
+- [package-name] ([version]): [reason for needing it]
+- [package-name] ([version]): [reason for needing it]
+
+Install command: [e.g., npm install, pip install, go get, brew install]
+
+Approve installation? [Yes/No]
+```
+
+**IMPORTANT:** Do NOT install dependencies without explicit approval.
+
+### Dependency Version Policy
+**When adding new dependencies to a project, always use the latest stable version available.**
+
+This ensures:
+- Access to the newest features and improvements
+- Latest security patches and bug fixes
+- Reduced technical debt from outdated dependencies
+- Better long-term compatibility and support
+
+Check the package registry (npm, PyPI, crates.io, etc.) for the most recent stable release before installation.
+
+---
+
+## Rule 5: Context Usage Reporting
+
+**Report context usage percentage after every response.**
+
+### Format
+```
+---
+Context: XX% used (USED/BUDGET tokens)
+```
+
+### Example
+```
+---
+Context: 15% used (29368/200000 tokens)
+```
+
+---
+
+## Rule 6: Git Commit on Every Change
+
+**Create a git commit after every file change or set of related changes in a git repository.**
+
+### Commit Requirements
+- Always commit after modifying, creating, or deleting files
+- **Always include `.beads/issues.jsonl` in commits** - beads database changes must be committed with related code changes
+- Write clear, descriptive commit messages
+- Follow the repository's existing commit message style
+- Include the issue ID in the commit message when working on a bead issue
+
+### Commit Message Format
+```
+[Brief description of change] ([issue-id])
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+### Workflow
+```bash
+# After making changes
+git add .
+git commit -m "$(cat <<'EOF'
+Add user authentication endpoint (site-abc)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+EOF
+)"
+```
+
+### Push Policy
+- **Main/Master branches:** Do NOT push unless explicitly requested by the user
+- **Feature branches:** Automatically push commits to keep remote branch updated
+- Check current branch before pushing: `git branch --show-current`
+
+```bash
+# After committing, push if on feature branch
+BRANCH=$(git branch --show-current)
+if [[ "$BRANCH" != "main" && "$BRANCH" != "master" ]]; then
+  git push -u origin "$BRANCH"
+fi
+```
+
+---
+
+## Rule 7: Monitoring with Exponential Backoff
+
+**When asked to monitor a process, use exponential backoff to avoid excessive polling.**
+
+### When to Use
+- Monitoring CI/CD pipeline status (e.g., `gh pr checks`)
+- Waiting for build completion
+- Watching for deployment status changes
+- Any long-running process that requires periodic checking
+
+### Backoff Strategy
+```
+Initial delay: 5 seconds
+Multiplier: 2x
+Maximum delay: 60 seconds
+Maximum duration: 10 minutes (or until user interrupts)
+```
+
+### Example Sequence
+```
+Check 1: immediate
+Check 2: wait 5s
+Check 3: wait 10s
+Check 4: wait 20s
+Check 5: wait 40s
+Check 6+: wait 60s (capped)
+```
+
+### Implementation
+```bash
+# Example: Monitor PR checks with exponential backoff
+delay=5
+max_delay=60
+while true; do
+  gh pr checks --watch 2>/dev/null && break
+  echo "Checks still running, waiting ${delay}s..."
+  sleep $delay
+  delay=$((delay * 2))
+  [[ $delay -gt $max_delay ]] && delay=$max_delay
+done
+```
+
+### Running as Background Process
+
+**Always run monitoring as a background process** to allow continued work while waiting:
+
+```bash
+# Start monitoring in background using Bash tool with run_in_background=true
+# This frees up the agent to continue other work while monitoring
+
+# Check output periodically using BashOutput tool
+# Use exponential backoff when polling for results
+```
+
+**Agent workflow:**
+1. Start monitor using Bash with `run_in_background: true`
+2. Continue with other tasks or inform user of wait
+3. Poll for results using BashOutput with exponential backoff
+4. Report status when monitoring completes or user interrupts
+
+### Benefits
+- Reduces API rate limit consumption
+- Minimizes unnecessary output noise
+- Respects external service resources
+- Still provides timely feedback when status changes
+
+---
+
+## Rule 8: Parallel Work with Git Worktrees
+
+**When multiple agents work in parallel, each agent MUST use a separate git-worktree for isolation.**
+
+### Why Worktrees?
+- Prevents file conflicts between parallel agents
+- Each agent has isolated working directory
+- Agents can work on different branches simultaneously
+- No need to stash/unstash or context switch
+
+### Setup for Parallel Work
+
+```bash
+# Create worktree for a specific issue (from main repo)
+git worktree add ../REPO-AGENTS-xyz AGENTS-xyz
+
+# Or create worktree with new branch
+git worktree add ../REPO-AGENTS-xyz -b AGENTS-xyz main
+```
+
+### Naming Convention
+```
+../REPO-ISSUE-ID
+```
+Example: If repo is `myapp` and issue is `AGENTS-42`:
+```
+../myapp-AGENTS-42
+```
+
+### Agent Workflow for Parallel Work
+
+1. **Orchestrator creates worktrees** before spawning parallel agents:
+   ```bash
+   # Create worktrees for each parallel task
+   git worktree add ../myapp-AGENTS-42 -b AGENTS-42 main
+   git worktree add ../myapp-AGENTS-43 -b AGENTS-43 main
+   ```
+
+2. **Each agent works in its own worktree**:
+   ```bash
+   cd ../myapp-AGENTS-42
+   # Agent works here in isolation
+   ```
+
+3. **Agents commit and push from their worktree**:
+   ```bash
+   git add . && git commit -m "Complete feature"
+   git push -u origin AGENTS-42
+   ```
+
+4. **Cleanup after merge**:
+   ```bash
+   # From main repo, remove worktree after PR merged
+   git worktree remove ../myapp-AGENTS-42
+   ```
+
+### Listing and Managing Worktrees
+
+```bash
+git worktree list              # Show all worktrees
+git worktree remove <path>     # Remove a worktree
+git worktree prune             # Clean up stale worktrees
+```
+
+### Important Rules
+- ✅ Always create worktree from main repo directory
+- ✅ Use consistent naming: `../REPO-ISSUE-ID`
+- ✅ Each parallel agent gets its own worktree
+- ✅ Clean up worktrees after PRs are merged
+- ❌ Never have multiple agents work in the same directory
+- ❌ Don't delete worktrees with uncommitted changes
+
+---
+
+## Rule 9: Prefer Statically Typed Languages
+
+**When creating new projects, prefer statically typed languages like Go or Kotlin.**
+
+### Why Static Types?
+- **Lego block assembly**: Types make code snap together cleanly—function signatures tell you exactly what goes in and what comes out
+- **Agent-friendly**: AI agents can reason about type contracts without needing to trace through runtime behavior
+- **Easier testing**: Type mismatches are caught at compile time, not in production
+- **Self-documenting**: Types serve as inline documentation that stays in sync with the code
+- **Refactoring confidence**: The compiler catches cascading changes across the codebase
+
+### Recommended Languages
+- **Go**: Simple, fast compilation, excellent tooling, great for services and CLI tools
+- **Kotlin**: Modern, expressive, excellent for JVM-based applications and Android
+- **TypeScript**: When JavaScript ecosystem is required
+- **Rust**: When memory safety and performance are critical
+
+### When Using Scripting Languages
+
+If the project natively uses a scripting language (Python, JavaScript, Ruby, etc.), **always use types**:
+
+```python
+# ✅ GOOD - Python with type hints
+def process_user(user_id: int, options: ProcessOptions) -> UserResult:
+    ...
+
+# ❌ BAD - No types
+def process_user(user_id, options):
+    ...
+```
+
+```javascript
+// ✅ GOOD - Use TypeScript instead of JavaScript
+function processUser(userId: number, options: ProcessOptions): UserResult {
+    ...
+}
+
+// ❌ BAD - Plain JavaScript without types
+function processUser(userId, options) {
+    ...
+}
+```
+
+### Type Coverage Requirements
+- **New projects**: 100% type coverage from the start
+- **Existing projects**: Add types to any code you modify
+- **Use strict mode**: Enable strict type checking in compiler/linter settings
+  - TypeScript: `"strict": true`
+  - Python: Use `mypy --strict` or pyright strict mode
+  - Go: Types are mandatory (built-in)
+
+### Benefits for AI Agents
+When agents work with typed code:
+- Function signatures provide clear contracts without reading implementation
+- Autocomplete and suggestions are more accurate
+- Errors are caught during code generation, not execution
+- Refactoring across files is safer and more reliable
+- Code review can focus on logic, not type mismatches
+
+---
+
+## Landing the Plane
+
+**When the user says "let's land the plane"**, follow this clean session-ending protocol:
+
+1. **File beads issues for any remaining work** that needs follow-up
+2. **Ensure all quality gates pass** (only if code changes were made) - run tests, linters, builds (file P0 issues if broken)
+3. **Update beads issues** - close finished work, update status
+4. **Commit and push beads changes to active PR** - If working on a feature branch PR:
+   - Commit any beads database updates: `git add .beads/ && git commit -m "Update beads database"`
+   - Push to the PR branch: `git push`
+   - This ensures beads state is preserved in the PR and synced with remote
+5. **Sync with main if needed** - Only if switching back to main or reconciling:
+   - Work methodically to ensure both local and remote issues merge safely
+   - This may require pulling, handling conflicts, syncing the database
+   - Be creative and patient - the goal is clean reconciliation where no issues are lost
+6. **Clean up git state** - Clear old stashes and prune dead remote branches:
+   ```bash
+   git stash clear                    # Remove old stashes
+   git remote prune origin            # Clean up deleted remote branches
+   ```
+7. **Verify clean state** - Ensure all changes are committed and pushed, no untracked files remain
+8. **Choose a follow-up issue for next session**
+   - Provide a prompt for the user to give to you in the next session
+   - Format: "Continue work on ISSUE-ID: [issue title]. [Brief context about what's been done and what's next]"
+
+### Example "Land the Plane" Session
+
+```bash
+# 1. File remaining work
+bd create "Add integration tests for sync" -t task -p 2
+
+# 2. Run quality gates (only if code changes were made)
+npm test                # or: go test, pytest, etc.
+npm run lint            # or: golangci-lint run, etc.
+
+# 3. Close finished issues
+bd close AGENTS-42 --reason "Completed feature and tests passing"
+
+# 4. Commit and push beads changes to active PR (if on feature branch)
+git add .beads/
+git commit -m "Update beads database after closing AGENTS-42"
+git push
+
+# 5. Sync with main if needed (only when switching branches or reconciling)
+# Usually not needed during active PR work
+# git checkout main && git pull
+# Resolve any conflicts if needed
+
+# 6. Clean up git state
+git stash clear
+git remote prune origin
+
+# 7. Verify clean state
+git status
+
+# 8. Choose next work
+bd ready
+bd show AGENTS-44
+```
+
+### Session Handoff Deliverables
+
+**Then provide the user with:**
+
+- Summary of what was completed this session
+- What issues were filed for follow-up
+- Status of quality gates (all passing / issues filed)
+- Recommended prompt for next session
+
+**Example handoff message:**
+
+```
+✅ Session Complete
+
+Completed this session:
+- AGENTS-42: Implemented user authentication with JWT
+- AGENTS-43: Added unit tests for auth middleware
+
+Follow-up issues filed:
+- AGENTS-45: Add integration tests for auth flow (P2)
+- AGENTS-46: Add password reset functionality (P3)
+
+Quality gates: ✅ All tests passing, no lint errors
+
+Recommended prompt for next session:
+"please read and apply ../AGENTS/AGENTS.md
+
+Continue work on AGENTS-45: Add integration tests for auth flow.
+The auth middleware is complete and unit tested. Next step is to
+add integration tests covering the full login/logout flow."
+```
+
+---
+
+## Pass the Baton
+
+**When the user says "pass the baton"**, execute the full "Land the Plane" protocol, then automatically spawn a new agent to continue the work.
+
+### How It Works
+
+1. **Execute all "Land the Plane" steps** (1-8 above)
+2. **Build the continuation prompt** including:
+   - Instructions to read and apply AGENTS.md
+   - The recommended follow-up issue and context
+   - Any critical information the next agent needs
+3. **Spawn a new agent** using the Task tool with `subagent_type: "general-purpose"`
+4. **Pass the baton** by sending the continuation prompt to the new agent
+
+### Implementation
+
+After completing "Land the Plane" steps 1-7, instead of just providing a recommended prompt:
+
+```
+# Step 8 becomes: Spawn continuation agent
+
+Use the Task tool with:
+- subagent_type: "general-purpose"
+- prompt: The full continuation prompt (see format below)
+```
+
+### Continuation Prompt Format
+
+The prompt passed to the new agent should include:
+
+```
+please read and apply ../AGENTS/AGENTS.md
+
+Continue work on [ISSUE-ID]: [issue title].
+
+## Context from previous session
+- What was completed: [summary]
+- Current state: [branch name, PR status if any]
+- Next steps: [specific actions to take]
+
+## Important notes
+- [Any blockers, gotchas, or critical information]
+- [Dependencies or related issues]
+
+Begin by running `bd show [ISSUE-ID]` to review the issue details.
+```
+
+### Example "Pass the Baton" Flow
+
+```
+User: "pass the baton"
+
+Agent:
+1. Files remaining work as beads
+2. Runs quality gates
+3. Closes finished issues
+4. Commits and pushes beads changes
+5. Cleans up git state
+6. Verifies clean state
+7. Identifies next issue (AGENTS-45)
+8. Spawns new agent with prompt:
+
+   "please read and apply ../AGENTS/AGENTS.md
+
+   Continue work on AGENTS-45: Add integration tests for auth flow.
+
+   ## Context from previous session
+   - Completed: JWT auth middleware with unit tests (AGENTS-42, AGENTS-43)
+   - Current state: On branch main, all PRs merged
+   - Next steps: Create integration tests for login/logout endpoints
+
+   ## Important notes
+   - Auth middleware is in src/middleware/auth.ts
+   - Test utilities are in tests/helpers/
+
+   Begin by running `bd show AGENTS-45` to review the issue details."
+```
+
+### When to Use
+
+- **"pass the baton"**: Auto-continue with new agent (no human intervention needed)
+- **"land the plane"**: End session, provide prompt for human to start next session
+
+### Benefits
+
+- Enables continuous autonomous work across context window limits
+- Preserves critical context between agent sessions
+- Maintains workflow continuity without human copy-paste
+- Each agent starts fresh with full context budget
