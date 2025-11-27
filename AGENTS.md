@@ -83,7 +83,7 @@ When user says "land the plane":
 3. Close finished issues
 4. Commit and push beads changes
 5. Clean up: `git stash clear && git remote prune origin`
-6. Provide session summary and recommended next prompt
+6. Provide session summary and recommended next prompt (first line must be: `please read and apply /Users/mikelady/dev/AGENTS/AGENTS.md`)
 
 ## Pass the Baton
 When user says "pass the baton": Execute "Land the Plane", then spawn a new agent with continuation prompt using the Task tool.
