@@ -23,7 +23,8 @@ func (c *ContextReport) Description() string {
 }
 
 // contextPattern matches "Context: XX% used" with optional token counts
-var contextPattern = regexp.MustCompile(`Context:\s*\d+%\s*used`)
+// Allows optional ~ for estimated values (e.g., "Context: ~1% used")
+var contextPattern = regexp.MustCompile(`Context:\s*~?\d+%\s*used`)
 
 func (c *ContextReport) Check(t *transcript.Transcript) []Violation {
 	var violations []Violation

@@ -22,6 +22,8 @@ func TestContextReport_WithReport(t *testing.T) {
 		{"with tokens", "Done!\n\n---\nContext: 15% used (30K/200K tokens)"},
 		{"inline", "Context: 50% used"},
 		{"different percent", "Context: 99% used"},
+		{"estimated with tilde", "Done!\n\n---\nContext: ~1% used (estimated)"},
+		{"estimated higher", "Context: ~25% used"},
 	}
 
 	c := &ContextReport{}

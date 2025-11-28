@@ -6,3 +6,5 @@ max_turns: 3
 timeout: 60
 tags:
   - smoke
+setup_commands:
+  - "echo 'module example.com/test\n\ngo 1.21' > go.mod"
