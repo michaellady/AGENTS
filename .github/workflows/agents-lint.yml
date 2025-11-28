@@ -1,0 +1,54 @@
+name: AGENTS Lint
+
+on:
+  pull_request:
+    paths:
+      - 'agents-lint/**'
+      - '**.ndjson'
+  push:
+    branches:
+      - main
+    paths:
+      - 'agents-lint/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: agents-lint/go.sum
+
+      - name: Build agents-lint
+        working-directory: agents-lint
+        run: go build -o agents-lint ./cmd/agents-lint
+
+      - name: Run tests
+        working-directory: agents-lint
+        run: go test -v ./...
+
+      - name: Test passing transcripts
+        working-directory: agents-lint
+        run: |
+          for f in testdata/transcripts/passing/*.ndjson; do
+            echo "Checking $f (expect pass)..."
+            ./agents-lint check "$f" || exit 1
+          done
+
+      - name: Test failing transcripts
+        working-directory: agents-lint
+        run: |
+          for f in testdata/transcripts/failing/*.ndjson; do
+            echo "Checking $f (expect violations)..."
+            if ./agents-lint check "$f"; then
+              echo "ERROR: Expected violations but check passed"
+              exit 1
+            fi
+          done
+
+      - name: List checkers
+        working-directory: agents-lint
+        run: ./agents-lint list
