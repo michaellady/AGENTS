@@ -21,6 +21,9 @@ go install github.com/michaellady/agents-lint/cmd/agents-lint@latest
 # Check a transcript
 ./agents-lint check transcript.ndjson
 
+# Validate AGENTS.md structure
+./agents-lint validate AGENTS.md
+
 # List available checkers
 ./agents-lint list
 
@@ -38,18 +41,23 @@ agents-lint - Validate Claude Code transcripts against AGENTS.md rules
 
 Usage:
   agents-lint check [options] <transcript.ndjson>
+  agents-lint validate [options] <AGENTS.md>
   agents-lint list [--format=json]
   agents-lint <transcript.ndjson>  (shorthand for check)
 
 Commands:
-  check    Run checkers on a transcript file
-  list     List all available checkers
+  check      Run checkers on a transcript file
+  validate   Validate AGENTS.md file structure
+  list       List all available checkers
 
 Check Options:
   -checker string   Run only specific checker(s), comma-separated
   -format string    Output format: text (default) or json
   -fail-on string   Fail on: error (default), warning, or info
   -verbose          Show detailed output (text format only)
+
+Validate Options:
+  -format string    Output format: text (default) or json
 
 Exit Codes:
   0  All checks passed
