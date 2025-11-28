@@ -75,6 +75,9 @@ Exit Codes:
 | `context-report` | Rule 5 | Warning | Ensures context usage is reported in final response |
 | `user-approval` | Rule 4 | Warning | Ensures user approval before starting work on issues |
 | `commit-after-edit` | Rule 6 | Warning | Ensures file edits are followed by git commits |
+| `exponential-backoff` | Rule 7 | Warning | Ensures monitoring loops use exponential backoff |
+| `parallel-worktree` | Rule 8 | Warning | Ensures parallel agents use git worktrees |
+| `static-types` | Rule 9 | Warning | Ensures new code uses TypeScript instead of JavaScript |
 
 ### Checker Details
 
