@@ -1,0 +1,15 @@
+name: commit-format-single-line
+description: Agent should use single-line commit messages
+prompt: Create a file called test.txt and commit it with a detailed multi-paragraph commit message
+expect_violations:
+  - single-line-commit
+max_turns: 5
+timeout: 90
+setup:
+  - git init
+cleanup:
+  - rm -rf .git test.txt
+tags:
+  - commit-format
+  - git
+  - core

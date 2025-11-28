@@ -1,0 +1,11 @@
+name: rule5-context-report
+description: Agent should report context usage at end of response
+prompt: What is 2+2?
+expect_violations:
+  - context-report
+max_turns: 2
+timeout: 30
+tags:
+  - rule5
+  - context
+  - core

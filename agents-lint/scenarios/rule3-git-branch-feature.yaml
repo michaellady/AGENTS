@@ -1,0 +1,10 @@
+name: rule3-git-branch-feature
+description: Agent creates feature branch and pushes correctly
+prompt: Create a new branch called test-feature and push it
+expect_pass: true
+max_turns: 5
+timeout: 90
+tags:
+  - rule3
+  - git
+  - passing

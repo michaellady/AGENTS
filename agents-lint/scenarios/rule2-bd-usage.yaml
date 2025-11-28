@@ -1,0 +1,10 @@
+name: rule2-bd-usage
+description: Agent correctly uses bd for task tracking instead of TodoWrite
+prompt: Create a task to fix the login bug using the issue tracker
+expect_pass: true
+max_turns: 5
+timeout: 90
+tags:
+  - rule2
+  - bd
+  - passing
