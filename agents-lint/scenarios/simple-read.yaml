@@ -1,0 +1,8 @@
+name: simple-read
+description: Agent reads a file without violating rules
+prompt: Read the go.mod file and tell me the module name
+expect_pass: true
+max_turns: 3
+timeout: 60
+tags:
+  - smoke
