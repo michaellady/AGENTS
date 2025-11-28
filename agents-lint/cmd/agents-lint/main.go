@@ -2,12 +2,14 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/michaellady/agents-lint/internal/checker"
+	"github.com/michaellady/agents-lint/internal/report"
 	"github.com/michaellady/agents-lint/internal/transcript"
 
 	// Register all checkers
@@ -30,7 +32,7 @@ func main() {
 	case "check":
 		os.Exit(runCheck(os.Args[2:]))
 	case "list":
-		os.Exit(runList())
+		os.Exit(runList(os.Args[2:]))
 	case "-h", "--help", "help":
 		printUsage()
 		os.Exit(exitOK)
@@ -45,7 +47,7 @@ func printUsage() {
 
 Usage:
   agents-lint check [options] <transcript.ndjson>
-  agents-lint list
+  agents-lint list [--format=json]
   agents-lint <transcript.ndjson>  (shorthand for check)
 
 Commands:
@@ -54,18 +56,22 @@ Commands:
 
 Check Options:
   -checker string   Run only specific checker(s), comma-separated
-  -verbose          Show detailed output
+  -format string    Output format: text (default) or json
+  -fail-on string   Fail on: error (default), warning, or info
+  -verbose          Show detailed output (text format only)
 
 Exit Codes:
   0  All checks passed
-  1  One or more violations found
+  1  One or more violations found (at specified severity)
   2  Error (invalid args, file not found, parse error)`)
 }
 
 func runCheck(args []string) int {
 	fs := flag.NewFlagSet("check", flag.ExitOnError)
 	checkerFlag := fs.String("checker", "", "Run only specific checker(s), comma-separated")
-	verbose := fs.Bool("verbose", false, "Show detailed output")
+	format := fs.String("format", "text", "Output format: text or json")
+	failOn := fs.String("fail-on", "error", "Fail on: error, warning, or info")
+	verbose := fs.Bool("verbose", false, "Show detailed output (text format only)")
 
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -94,32 +100,63 @@ func runCheck(args []string) int {
 	result.TranscriptPath = path
 
 	// Output results
-	errors, warnings, infos := result.Summary()
-
-	if *verbose || len(result.Violations) > 0 {
-		for _, v := range result.Violations {
-			severity := strings.ToUpper(v.Severity.String())
-			fmt.Printf("[%s] %s: %s\n", severity, v.Rule, v.Message)
-			if v.ToolCallID != "" && *verbose {
-				fmt.Printf("  Tool call: %s\n", v.ToolCallID)
-			}
+	switch *format {
+	case "json":
+		if err := report.WriteJSON(os.Stdout, result); err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing JSON: %v\n", err)
+			return exitError
 		}
+	case "text":
+		report.WriteText(os.Stdout, result, *verbose)
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown format: %s\n", *format)
+		return exitError
 	}
 
-	if *verbose {
-		fmt.Printf("\nCheckers run: %s\n", strings.Join(result.CheckersRun, ", "))
+	// Determine exit code based on --fail-on
+	errors, warnings, infos := result.Summary()
+	switch *failOn {
+	case "error":
+		if errors > 0 {
+			return exitViolations
+		}
+	case "warning":
+		if errors > 0 || warnings > 0 {
+			return exitViolations
+		}
+	case "info":
+		if errors > 0 || warnings > 0 || infos > 0 {
+			return exitViolations
+		}
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown fail-on value: %s\n", *failOn)
+		return exitError
 	}
 
-	fmt.Printf("\n%s: %d errors, %d warnings, %d info\n", path, errors, warnings, infos)
-
-	if result.HasErrors() {
-		return exitViolations
-	}
 	return exitOK
 }
 
-func runList() int {
+func runList(args []string) int {
+	fs := flag.NewFlagSet("list", flag.ExitOnError)
+	format := fs.String("format", "text", "Output format: text or json")
+	_ = fs.Parse(args)
+
 	checkers := checker.GetAll()
+
+	if *format == "json" {
+		type checkerInfo struct {
+			ID          string `json:"id"`
+			Description string `json:"description"`
+		}
+		list := make([]checkerInfo, len(checkers))
+		for i, c := range checkers {
+			list[i] = checkerInfo{ID: c.ID(), Description: c.Description()}
+		}
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		enc.Encode(list)
+		return exitOK
+	}
 
 	if len(checkers) == 0 {
 		fmt.Println("No checkers registered")
