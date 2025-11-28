@@ -4,12 +4,21 @@ on:
   pull_request:
     paths:
       - 'agents-lint/**'
+      - 'AGENTS.md'
       - '**.ndjson'
   push:
     branches:
       - main
     paths:
       - 'agents-lint/**'
+      - 'AGENTS.md'
+  workflow_dispatch:
+    inputs:
+      run_live_tests:
+        description: 'Run live API tests (requires ANTHROPIC_API_KEY)'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   build:
@@ -26,7 +35,11 @@ jobs:
         working-directory: agents-lint
         run: go build -o agents-lint ./cmd/agents-lint
 
-      - name: Run tests
+      - name: Build agents-test
+        working-directory: agents-lint
+        run: go build -o agents-test ./cmd/agents-test
+
+      - name: Run unit tests
         working-directory: agents-lint
         run: go test -v ./...
 
@@ -52,3 +65,43 @@ jobs:
       - name: List checkers
         working-directory: agents-lint
         run: ./agents-lint list
+
+      - name: List test scenarios
+        working-directory: agents-lint
+        run: ./agents-test list scenarios/
+
+      - name: Validate scenarios (dry-run)
+        working-directory: agents-lint
+        run: ./agents-test run --dry-run scenarios/
+
+  live-tests:
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event.inputs.run_live_tests == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: agents-lint/go.sum
+
+      - name: Build agents-test
+        working-directory: agents-lint
+        run: |
+          go build -o agents-lint ./cmd/agents-lint
+          go build -o agents-test ./cmd/agents-test
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run live API tests
+        working-directory: agents-lint
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          ./agents-test run \
+            -agents ../AGENTS.md \
+            -output ./test-transcripts \
+            -model haiku \
+            scenarios/

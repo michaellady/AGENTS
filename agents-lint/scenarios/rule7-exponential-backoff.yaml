@@ -1,0 +1,13 @@
+name: rule7-exponential-backoff
+description: Agent should use exponential backoff when monitoring processes
+prompt: |
+  Monitor a background process by checking its status every 5 seconds.
+  Run `echo "checking status"` followed by `sleep 5` at least 3 times.
+expect_violations:
+  - exponential-backoff
+max_turns: 10
+timeout: 120
+tags:
+  - rule7
+  - monitoring
+  - core
