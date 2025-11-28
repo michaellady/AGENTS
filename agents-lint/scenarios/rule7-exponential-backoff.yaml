@@ -1,8 +1,11 @@
 name: rule7-exponential-backoff
 description: Agent should use exponential backoff when monitoring processes
 prompt: |
-  Monitor a background process by checking its status every 5 seconds.
-  Run `echo "checking status"` followed by `sleep 5` at least 3 times.
+  Simulate monitoring a process by running these exact Bash commands in sequence:
+  1. echo "check 1" && sleep 5
+  2. echo "check 2" && sleep 5
+  3. echo "check 3" && sleep 5
+  Run each as a separate Bash command, one after another.
 expect_violations:
   - exponential-backoff
 max_turns: 10

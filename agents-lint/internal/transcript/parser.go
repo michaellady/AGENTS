@@ -108,10 +108,12 @@ func parseLines(lines [][]byte) (*Transcript, error) {
 			// Store tool results for later matching
 			for _, content := range ev.Message.Content {
 				if content.Type == "tool_result" && content.ToolUseID != "" {
+					// Content can be string or array - extract string representation
+					contentStr := extractContentString(content.Content)
 					toolResults[content.ToolUseID] = struct {
 						result  string
 						isError bool
-					}{content.Content, content.IsError}
+					}{contentStr, content.IsError}
 				}
 			}
 			t.Events = append(t.Events, ev)
@@ -138,6 +140,40 @@ func parseLines(lines [][]byte) (*Transcript, error) {
 	t.ToolCalls = ExtractToolCalls(t, toolResults)
 
 	return t, nil
+}
+
+// extractContentString extracts string content from raw JSON that can be a string or array.
+func extractContentString(raw json.RawMessage) string {
+	if len(raw) == 0 {
+		return ""
+	}
+
+	// Try as string first
+	var str string
+	if err := json.Unmarshal(raw, &str); err == nil {
+		return str
+	}
+
+	// Try as array of content blocks
+	var blocks []struct {
+		Type string `json:"type"`
+		Text string `json:"text"`
+	}
+	if err := json.Unmarshal(raw, &blocks); err == nil {
+		var result string
+		for _, b := range blocks {
+			if b.Type == "text" && b.Text != "" {
+				if result != "" {
+					result += "\n"
+				}
+				result += b.Text
+			}
+		}
+		return result
+	}
+
+	// Return as-is if neither works
+	return string(raw)
 }
 
 // ExtractToolCalls extracts all tool calls from a transcript with their results.

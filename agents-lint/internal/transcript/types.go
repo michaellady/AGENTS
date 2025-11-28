@@ -74,10 +74,11 @@ type UserMessage struct {
 
 // UserContentBlock represents user content, typically tool results.
 type UserContentBlock struct {
-	Type      string `json:"type"`                  // "tool_result" or "text"
-	ToolUseID string `json:"tool_use_id,omitempty"` // References the tool_use block
-	Content   string `json:"content,omitempty"`
-	IsError   bool   `json:"is_error,omitempty"`
+	Type      string          `json:"type"`                  // "tool_result" or "text"
+	ToolUseID string          `json:"tool_use_id,omitempty"` // References the tool_use block
+	Content   json.RawMessage `json:"content,omitempty"`     // string or array of content blocks
+	IsError   bool            `json:"is_error,omitempty"`
+	Text      string          `json:"text,omitempty"` // For "text" type blocks
 }
 
 // ResultEvent is emitted at the end of a session with summary info.
