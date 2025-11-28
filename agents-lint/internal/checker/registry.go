@@ -104,3 +104,21 @@ func Clear() {
 	defer registryMu.Unlock()
 	registry = make(map[string]Checker)
 }
+
+// snapshot returns a copy of the current registry. For testing only.
+func snapshot() map[string]Checker {
+	registryMu.RLock()
+	defer registryMu.RUnlock()
+	copy := make(map[string]Checker, len(registry))
+	for k, v := range registry {
+		copy[k] = v
+	}
+	return copy
+}
+
+// restore replaces the registry with a snapshot. For testing only.
+func restore(snap map[string]Checker) {
+	registryMu.Lock()
+	defer registryMu.Unlock()
+	registry = snap
+}

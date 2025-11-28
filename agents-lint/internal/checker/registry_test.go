@@ -19,8 +19,15 @@ func (m *mockChecker) Check(_ *transcript.Transcript) []Violation {
 	return m.violations
 }
 
+// saveRegistry saves and restores the registry for isolated testing.
+func saveRegistry(t *testing.T) {
+	snap := snapshot()
+	t.Cleanup(func() { restore(snap) })
+}
+
 func TestRegisterAndGetByID(t *testing.T) {
-	Clear() // Reset registry
+	saveRegistry(t)
+	Clear()
 
 	c := &mockChecker{id: "test-checker", description: "A test checker"}
 	Register(c)
@@ -35,6 +42,7 @@ func TestRegisterAndGetByID(t *testing.T) {
 }
 
 func TestGetByID_NotFound(t *testing.T) {
+	saveRegistry(t)
 	Clear()
 
 	got := GetByID("nonexistent")
@@ -44,6 +52,7 @@ func TestGetByID_NotFound(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
+	saveRegistry(t)
 	Clear()
 
 	Register(&mockChecker{id: "checker-b"})
@@ -69,6 +78,7 @@ func TestGetAll(t *testing.T) {
 }
 
 func TestIDs(t *testing.T) {
+	saveRegistry(t)
 	Clear()
 
 	Register(&mockChecker{id: "z-checker"})
@@ -84,6 +94,7 @@ func TestIDs(t *testing.T) {
 }
 
 func TestRegisterDuplicate(t *testing.T) {
+	saveRegistry(t)
 	Clear()
 
 	Register(&mockChecker{id: "dup"})
@@ -98,6 +109,7 @@ func TestRegisterDuplicate(t *testing.T) {
 }
 
 func TestRunAll(t *testing.T) {
+	saveRegistry(t)
 	Clear()
 
 	Register(&mockChecker{
@@ -134,6 +146,7 @@ func TestRunAll(t *testing.T) {
 }
 
 func TestRunByIDs(t *testing.T) {
+	saveRegistry(t)
 	Clear()
 
 	Register(&mockChecker{id: "run-me", violations: []Violation{{Message: "found"}}})
