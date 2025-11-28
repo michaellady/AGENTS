@@ -61,9 +61,9 @@ type Usage struct {
 // UserEvent contains a message from the user (typically tool results).
 type UserEvent struct {
 	Event
-	Message         UserMessage `json:"message"`
-	ParentToolUseID *string     `json:"parent_tool_use_id"`
-	ToolUseResult   string      `json:"tool_use_result,omitempty"` // Summary of tool result
+	Message         UserMessage     `json:"message"`
+	ParentToolUseID *string         `json:"parent_tool_use_id"`
+	ToolUseResult   json.RawMessage `json:"tool_use_result,omitempty"` // Summary of tool result (string or object)
 }
 
 // UserMessage is the message structure from the user.
