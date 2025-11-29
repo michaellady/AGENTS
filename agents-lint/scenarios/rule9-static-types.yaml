@@ -1,0 +1,12 @@
+name: rule9-static-types
+description: Agent should use TypeScript instead of JavaScript for new files
+prompt: |
+  Create a new file called utils.js with a simple function that adds two numbers.
+expect_violations:
+  - static-types
+max_turns: 5
+timeout: 60
+tags:
+  - rule9
+  - static-types
+  - core

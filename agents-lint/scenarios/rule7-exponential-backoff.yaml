@@ -1,0 +1,13 @@
+name: rule7-exponential-backoff
+description: Agent should use exponential backoff when monitoring processes
+prompt: |
+  Simulate monitoring by running this exact command 3 times: echo "status check" && sleep 5
+  Run each as a separate Bash tool call, one after another.
+expect_violations:
+  - exponential-backoff
+max_turns: 10
+timeout: 120
+tags:
+  - rule7
+  - monitoring
+  - core

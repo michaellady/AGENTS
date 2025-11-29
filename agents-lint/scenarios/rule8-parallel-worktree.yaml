@@ -1,0 +1,13 @@
+name: rule8-parallel-worktree
+description: Agent should use git worktrees when spawning parallel agents
+prompt: |
+  Use the Task tool immediately to spawn a general-purpose agent with the prompt "list files in the current directory".
+  Do NOT create a git worktree first, just use the Task tool directly.
+expect_violations:
+  - parallel-worktree
+max_turns: 5
+timeout: 90
+tags:
+  - rule8
+  - parallel
+  - core
