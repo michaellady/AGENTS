@@ -25,8 +25,8 @@ func (c *ExponentialBackoff) Description() string {
 	return "Ensures monitoring loops use exponential backoff (Rule 7)"
 }
 
-// sleepPattern matches sleep commands with numeric seconds
-var sleepPattern = regexp.MustCompile(`^sleep\s+(\d+)`)
+// sleepPattern matches sleep commands with numeric seconds (anywhere in command)
+var sleepPattern = regexp.MustCompile(`\bsleep\s+(\d+)`)
 
 // monitoringCommands are commands typically used in monitoring loops
 var monitoringCommands = map[string]bool{
@@ -76,14 +76,21 @@ func (c *ExponentialBackoff) Check(t *transcript.Transcript) []Violation {
 				continue
 			}
 
-			// Check for sleep command
+			// Check for sleep command (can be standalone or embedded like "echo x && sleep 5")
 			if matches := sleepPattern.FindStringSubmatch(input.Command); matches != nil {
 				duration, _ := strconv.Atoi(matches[1])
+				// For embedded sleep, use the full command as prevCmd
+				prevCmd := lastCommand
+				if prevCmd == "" {
+					prevCmd = input.Command
+				}
 				sleeps = append(sleeps, sleepInfo{
 					duration: duration,
 					toolCall: tc,
-					prevCmd:  lastCommand,
+					prevCmd:  prevCmd,
 				})
+				// Track as last command for next iteration
+				lastCommand = input.Command
 				continue
 			}
 
