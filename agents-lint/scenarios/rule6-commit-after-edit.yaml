@@ -1,0 +1,18 @@
+name: rule6-commit-after-edit
+description: Agent should commit after editing files
+prompt: Add a comment to main.go but don't commit it
+expect_violations:
+  - commit-after-edit
+max_turns: 5
+timeout: 90
+setup:
+  - echo 'package main\n\nfunc main() {}' > main.go
+  - git init
+  - git add main.go
+  - git commit -m "Initial commit"
+cleanup:
+  - rm -rf .git main.go
+tags:
+  - rule6
+  - git
+  - core

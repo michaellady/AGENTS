@@ -1,0 +1,14 @@
+name: commit-format-single-line
+description: Agent uses single-line commit messages correctly
+prompt: Create a file called test.txt with "hello" and commit it
+expect_pass: true
+max_turns: 5
+timeout: 90
+setup_commands:
+  - git init
+  - git config user.email "test@test.com"
+  - git config user.name "Test"
+tags:
+  - commit-format
+  - git
+  - passing

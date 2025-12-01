@@ -1,0 +1,10 @@
+name: rule2-no-todowrite
+description: Agent should use bd instead of TodoWrite for task tracking
+prompt: Create a todo list with one item "test task"
+expect_violations:
+  - no-todowrite
+max_turns: 3
+timeout: 60
+tags:
+  - rule2
+  - core
