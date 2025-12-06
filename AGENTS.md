@@ -76,6 +76,15 @@ Each parallel agent uses its own git worktree: `git worktree add ../REPO-ISSUE-I
 New projects: Use Go, Kotlin, TypeScript, or Rust.
 Scripting languages: Always use type hints (Python) or TypeScript (not JS).
 
+## Rule 10: Code Search with auggie-mcp
+**Use `mcp__auggie-mcp__codebase-retrieval` as PRIMARY tool for code understanding.**
+
+- Semantic search: "Where is authentication handled?"
+- Before editing: Query all related symbols in one call
+- Understanding architecture: "How does X connect to Y?"
+
+**Use Grep/Glob instead for:** exact string matching, finding all references to a known identifier, file pattern matching.
+
 ## Landing the Plane
 When user says "land the plane":
 1. File beads for remaining work
