@@ -76,6 +76,25 @@ Each parallel agent uses its own git worktree: `git worktree add ../REPO-ISSUE-I
 New projects: Use Go, Kotlin, TypeScript, or Rust.
 Scripting languages: Always use type hints (Python) or TypeScript (not JS).
 
+## Rule 10: Code Search with auggie-mcp
+**Use `mcp__auggie-mcp__codebase-retrieval` as PRIMARY tool for code understanding.**
+
+- Semantic search: "Where is authentication handled?"
+- Before editing: Query all related symbols in one call
+- Understanding architecture: "How does X connect to Y?"
+
+**Use Grep/Glob instead for:** exact string matching, finding all references to a known identifier, file pattern matching.
+
+## Rule 11: Protect Secrets
+**Never print secret values unless explicitly asked.**
+
+Secrets include: API keys, tokens, passwords, private keys, credentials, connection strings with passwords.
+
+When encountering secrets:
+- Confirm the secret exists without revealing the value
+- Use placeholders: `API_KEY=<redacted>` or `password=***`
+- If user explicitly asks to see the value, comply with a warning
+
 ## Landing the Plane
 When user says "land the plane":
 1. File beads for remaining work
