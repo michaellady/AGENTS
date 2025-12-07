@@ -95,6 +95,15 @@ When encountering secrets:
 - Use placeholders: `API_KEY=<redacted>` or `password=***`
 - If user explicitly asks to see the value, comply with a warning
 
+## Rule 12: JIRA-Named Repository Handling
+**When working in a JIRA-named repository (like "AGENTS"), do NOT attempt to create new git repositories.**
+
+Instead:
+- Work only within existing repositories found in the workspace
+- Commit changes to the appropriate sub-repositories within the workspace
+- Respect the existing git structure and repository boundaries
+- Use `git status` and `git remote -v` to identify the correct repository context before making commits
+
 ## Landing the Plane
 When user says "land the plane":
 1. File beads for remaining work
