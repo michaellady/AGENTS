@@ -85,6 +85,16 @@ Scripting languages: Always use type hints (Python) or TypeScript (not JS).
 
 **Use Grep/Glob instead for:** exact string matching, finding all references to a known identifier, file pattern matching.
 
+## Rule 11: Protect Secrets
+**Never print secret values unless explicitly asked.**
+
+Secrets include: API keys, tokens, passwords, private keys, credentials, connection strings with passwords.
+
+When encountering secrets:
+- Confirm the secret exists without revealing the value
+- Use placeholders: `API_KEY=<redacted>` or `password=***`
+- If user explicitly asks to see the value, comply with a warning
+
 ## Landing the Plane
 When user says "land the plane":
 1. File beads for remaining work
