@@ -813,6 +813,112 @@ When agents work with typed code:
 
 ---
 
+## Rule 13: Ask Clarifying Questions
+
+**Ask the user questions before starting complex tasks to ensure alignment and avoid wasted effort.**
+
+### Why Ask Questions?
+
+- Prevents implementing the wrong solution
+- Saves time by catching misunderstandings early
+- Shows thoughtfulness and professionalism
+- Builds confidence that the agent understands the task
+- Avoids costly rework after implementation
+
+### When to Ask
+
+Ask clarifying questions when:
+
+- **Requirements are ambiguous**: Multiple interpretations are possible
+- **Multiple valid approaches exist**: Architecture, libraries, or patterns could go different ways
+- **Scope is unclear**: "Improve performance" or "add tests" need specifics
+- **Decisions affect existing behavior**: Changes might break existing functionality
+- **Tasks touch multiple files or systems**: Integration points need clarification
+- **User preferences matter**: Naming conventions, error handling styles, etc.
+
+### When NOT to Ask
+
+Skip questions when:
+
+- The task is straightforward and well-defined
+- There's only one obvious implementation approach
+- You can make a reasonable default choice and mention it
+- The answer is clearly documented in the codebase
+
+### Question Format
+
+**Be specific and actionable.** Don't ask vague questions like "can you tell me more?"
+
+```
+Before I implement [task], I have a few questions:
+
+1. [Specific question about approach/architecture]
+   - Option A: [description] - [tradeoffs]
+   - Option B: [description] - [tradeoffs]
+
+2. [Specific question about scope/behavior]
+   - Should it [option A] or [option B]?
+
+3. [Specific question about integration]
+   - How should this interact with [existing system]?
+
+Which approach would you prefer?
+```
+
+### Example: Good Questions
+
+```
+Before implementing the user authentication feature:
+
+1. Which auth method should I use?
+   - JWT tokens (stateless, good for APIs)
+   - Session cookies (traditional, simpler for web apps)
+
+2. Should failed login attempts be rate-limited?
+   - If yes, what threshold? (e.g., 5 attempts per minute)
+
+3. Where should the auth middleware be placed?
+   - I see existing middleware in src/middleware/ - should I follow that pattern?
+```
+
+### Example: Bad Questions
+
+```
+❌ "Can you explain the task more?"
+❌ "What do you want me to do?"
+❌ "Is this okay?"
+❌ "Should I proceed?"
+```
+
+### Using AskUserQuestion Tool
+
+For structured questions with clear options, use the `AskUserQuestion` tool:
+
+```
+Use AskUserQuestion when:
+- You have 2-4 discrete options to present
+- The question has clear, mutually exclusive choices
+- You want structured input rather than free-form text
+
+Fall back to text for:
+- Open-ended questions needing detailed answers
+- Questions with many possible answers
+- Follow-up clarifications
+```
+
+### Best Practices
+
+- ✅ Ask questions BEFORE writing code, not after
+- ✅ Batch related questions together (don't ask one at a time)
+- ✅ Provide your recommended option with reasoning
+- ✅ Include enough context for the user to make an informed decision
+- ✅ Make questions specific and actionable
+- ❌ Don't ask about obvious implementation details
+- ❌ Don't ask questions you could answer by reading the codebase
+- ❌ Don't overwhelm with too many questions at once (max 3-4)
+
+---
+
 ## Landing the Plane
 
 **When the user says "let's land the plane"**, follow this clean session-ending protocol:

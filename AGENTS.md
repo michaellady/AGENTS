@@ -104,6 +104,17 @@ Instead:
 - Respect the existing git structure and repository boundaries
 - Use `git status` and `git remote -v` to identify the correct repository context before making commits
 
+## Rule 13: Ask Clarifying Questions
+**Ask the user questions before starting complex tasks to ensure alignment.**
+
+When to ask:
+- Ambiguous requirements or multiple valid approaches
+- Architectural decisions (libraries, patterns, technologies)
+- Tasks affecting existing behavior or multiple files
+- Unclear scope or missing details
+
+Keep questions focused and actionable. Don't ask about obvious implementation details.
+
 ## Landing the Plane
 When user says "land the plane":
 1. File beads for remaining work
