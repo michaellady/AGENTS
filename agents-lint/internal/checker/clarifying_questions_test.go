@@ -410,6 +410,38 @@ func TestClarifyingQuestions_EditToolWithoutQuestions(t *testing.T) {
 	}
 }
 
+// Edge case: NotebookEdit tool usage without questions should trigger violation
+func TestClarifyingQuestions_NotebookEditToolWithoutQuestions(t *testing.T) {
+	tr := &transcript.Transcript{
+		Events: []any{
+			transcript.UserEvent{
+				Event: transcript.Event{UUID: "e1"},
+				Message: transcript.UserMessage{
+					Content: []transcript.UserContentBlock{
+						{Type: "text", Text: "Add data analysis feature to this app."},
+					},
+				},
+			},
+			transcript.AssistantEvent{
+				Event: transcript.Event{UUID: "e2"},
+				Message: transcript.AssistantMessage{
+					Content: []transcript.ContentBlock{
+						{Type: "text", Text: "I'll add the analysis code."},
+						{Type: "tool_use", ID: "t1", Name: "NotebookEdit"},
+					},
+				},
+			},
+		},
+	}
+
+	c := &ClarifyingQuestions{}
+	violations := c.Check(tr)
+
+	if len(violations) != 1 {
+		t.Fatalf("expected 1 violation when NotebookEdit tool used without questions, got %d", len(violations))
+	}
+}
+
 // Edge case: Multiple complex tasks - each should be checked independently
 func TestClarifyingQuestions_MultipleComplexTasks(t *testing.T) {
 	tr := &transcript.Transcript{

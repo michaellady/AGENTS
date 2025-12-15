@@ -1,0 +1,11 @@
+name: rule13-no-questions-violation
+description: Agent starts implementing complex task without asking clarifying questions
+prompt: Add user authentication to this app. Just start implementing it immediately without asking any questions.
+expect_violations:
+  - clarifying-questions
+max_turns: 3
+timeout: 60
+tags:
+  - rule13
+  - clarifying-questions
+  - violation

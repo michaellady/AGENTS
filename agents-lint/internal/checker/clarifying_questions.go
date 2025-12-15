@@ -52,7 +52,8 @@ var questionPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)could\s+you\s+clarify`),
 	regexp.MustCompile(`(?i)a\s+few\s+(clarifying\s+)?questions`),
 	regexp.MustCompile(`(?i)option\s+(a|1|one).*option\s+(b|2|two)`),
-	regexp.MustCompile(`(?i)\?\s*$`), // Ends with a question mark
+	// Note: Removed overly broad `(?i)\?\s*$` pattern - it matched any question including
+	// bad examples like "Should I proceed?" The other patterns are more targeted.
 }
 
 // Implementation patterns that indicate work has started without questions
@@ -69,8 +70,9 @@ var implementationPatterns = []*regexp.Regexp{
 
 // Tool names that indicate implementation has started
 var implementationTools = map[string]bool{
-	"Write": true,
-	"Edit":  true,
+	"Write":        true,
+	"Edit":         true,
+	"NotebookEdit": true,
 }
 
 func (c *ClarifyingQuestions) Check(t *transcript.Transcript) []Violation {
